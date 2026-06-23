@@ -1,9 +1,10 @@
+# trumpet
 
 # Fabric Apps - Analytics Template
 
 > **⚠️ This repository is under active development.** Features and instructions may change.
 
-This is a starter template for building Fabric Apps - Analytics web apps. Clone this repo locally and follow the steps below to get started.
+This is a test repo for Fabric data app work, based on the Fabric Apps - Analytics web app starter template.
 
 
 ## Prerequisites
