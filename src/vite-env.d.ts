@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_FABRIC_ITEM_ID?: string;
   /** Fabric portal base URL (e.g. https://app.fabric.microsoft.com/). */
   readonly VITE_FABRIC_PORTAL_URL?: string;
+  /** Build the static public GitHub Pages app instead of the Fabric app. */
+  readonly VITE_PUBLIC_APP?: string;
 }
 
 interface ImportMeta {

@@ -18,19 +18,24 @@ import { AuthGate } from './components/auth-gate.component';
 
 import "./global.css"
 
-const rayfinAuthService = bootstrapAuth();
+const isPublicApp = import.meta.env.VITE_PUBLIC_APP === "true";
 
 function Root() {
     const { isDark, toggleTheme } = useAppTheme();
+    const app = isPublicApp ? (
+        <App />
+    ) : (
+        <AuthProvider rayfinAuthService={bootstrapAuth()}>
+            <AuthGate>
+                <App />
+            </AuthGate>
+        </AuthProvider>
+    );
 
     return (
         <ThemeContext.Provider value={{ isDark, toggleTheme }}>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <AuthProvider rayfinAuthService={rayfinAuthService}>
-                    <AuthGate>
-                        <App />
-                    </AuthGate>
-                </AuthProvider>
+                {app}
             </ErrorBoundary>
         </ThemeContext.Provider>
     );

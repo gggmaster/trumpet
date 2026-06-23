@@ -5,12 +5,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-import { EmptyStatePreview } from "./EmptyStatePreview";
+import { PropertyDashboard } from "./PropertyDashboard";
+import { PublicPropertyDashboard } from "./PublicPropertyDashboard";
 
-// Replace `<EmptyStatePreview />` with your dashboard, remove the import
-// above, and delete `EmptyStatePreview.tsx` and `empty-state-preview-world-map.png`.
 function App() {
-    return <EmptyStatePreview />;
+    return import.meta.env.VITE_PUBLIC_APP === "true" ? (
+        <PublicPropertyDashboard />
+    ) : (
+        <PropertyDashboard />
+    );
 }
 
 export default App;
