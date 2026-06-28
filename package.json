@@ -13,6 +13,7 @@
     "build": "npx fabric-app-data generate -o src/fabric.generated.ts && tsc -b --noCheck && vite build",
     "build:fabric": "npx fabric-app-data generate -o src/fabric.generated.ts && tsc -b --noCheck && vite build",
     "build:public": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-public.ps1",
+    "build:api-public": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-api-public.ps1",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

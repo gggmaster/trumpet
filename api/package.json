@@ -1,0 +1,20 @@
+{
+  "name": "trumpet-property-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "func start",
+    "watch": "tsc -w -p tsconfig.json"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.7.3",
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.7",
+    "@types/node": "^22.10.2",
+    "typescript": "~5.7.2"
+  }
+}

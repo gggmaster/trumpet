@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "FABRIC_WAREHOUSE_SQL_SERVER": "your-warehouse-endpoint.datawarehouse.fabric.microsoft.com",
+    "FABRIC_WAREHOUSE_SQL_DATABASE": "your_warehouse_name",
+    "FABRIC_WAREHOUSE_SQL_USER": "your_user",
+    "FABRIC_WAREHOUSE_SQL_PASSWORD": "your_password"
+  }
+}

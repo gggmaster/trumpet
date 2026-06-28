@@ -13,6 +13,10 @@ interface ImportMetaEnv {
   readonly VITE_FABRIC_PORTAL_URL?: string;
   /** Build the static public GitHub Pages app instead of the Fabric app. */
   readonly VITE_PUBLIC_APP?: string;
+  /** Build the public app against the API layer instead of static JSON. */
+  readonly VITE_API_APP?: string;
+  /** Base URL for the property API, for example https://example.azurewebsites.net/api. */
+  readonly VITE_PROPERTY_API_BASE_URL?: string;
 }
 
 interface ImportMeta {
