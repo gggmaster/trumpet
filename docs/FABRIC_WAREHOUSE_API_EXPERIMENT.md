@@ -101,6 +101,37 @@ The API experiment does not yet refresh live data. The intended next step is:
 4. Upsert new property sale rows into the warehouse.
 5. Public app reads fresh results through the API.
 
+## Loading The Current Snapshot
+
+After creating the Fabric Warehouse and setting the connection environment variables, apply the schema:
+
+```powershell
+cd api
+$env:FABRIC_WAREHOUSE_SQL_SERVER="your-warehouse-endpoint.datawarehouse.fabric.microsoft.com"
+$env:FABRIC_WAREHOUSE_SQL_DATABASE="your_warehouse_name"
+$env:FABRIC_WAREHOUSE_SQL_USER="your_user"
+$env:FABRIC_WAREHOUSE_SQL_PASSWORD="your_password"
+npm run apply-schema
+```
+
+Then load the current public JSON snapshot into `dbo.PropertySales`:
+
+```powershell
+npm run load:public-json
+```
+
+That command truncates and reloads the table from:
+
+```text
+public/property-sales-public.json
+```
+
+For a non-destructive test load, run the script without `--truncate`:
+
+```powershell
+node scripts/load-public-json.mjs ../public/property-sales-public.json
+```
+
 ## Local Development
 
 API:

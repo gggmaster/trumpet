@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "apply-schema": "node scripts/apply-schema.mjs",
     "build": "tsc -p tsconfig.json",
+    "load:public-json": "node scripts/load-public-json.mjs --truncate ../public/property-sales-public.json",
     "start": "func start",
     "watch": "tsc -w -p tsconfig.json"
   },
