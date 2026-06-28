@@ -157,6 +157,45 @@ The existing public JSON mode remains:
 npm run build:public
 ```
 
+## Deployment Workflows
+
+Two manual GitHub Actions workflows were added for the experiment:
+
+```text
+.github/workflows/deploy-api.yml
+.github/workflows/pages-api-experiment.yml
+```
+
+`deploy-api.yml` deploys the Azure Functions API. It needs these GitHub repository secrets:
+
+```text
+AZURE_FUNCTIONAPP_NAME
+AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+```
+
+The Function App itself needs these app settings:
+
+```text
+FABRIC_WAREHOUSE_SQL_SERVER
+FABRIC_WAREHOUSE_SQL_DATABASE
+FABRIC_WAREHOUSE_SQL_USER
+FABRIC_WAREHOUSE_SQL_PASSWORD
+```
+
+`pages-api-experiment.yml` publishes the frontend in API-backed mode. It needs:
+
+```text
+PROPERTY_API_BASE_URL
+```
+
+Example:
+
+```text
+https://your-function-app.azurewebsites.net/api
+```
+
+Both workflows are manual (`workflow_dispatch`) so the current JSON-backed public site is not replaced accidentally.
+
 ## Current Status
 
 This is an experiment scaffold. It does not replace the deployed fallback public JSON app until we explicitly deploy the API and switch the production frontend to `VITE_API_APP=true`.
