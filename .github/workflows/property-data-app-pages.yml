@@ -29,20 +29,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: property_data_app/pnpm-lock.yaml
-
-      - name: Enable pnpm
-        run: corepack enable
+          cache: npm
+          cache-dependency-path: property_data_app/package.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install
 
       - name: Build public data
-        run: pnpm run build:public-data
+        run: npm run build:public-data
 
       - name: Build app
-        run: pnpm run build
+        run: npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

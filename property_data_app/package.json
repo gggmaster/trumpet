@@ -12,6 +12,7 @@
     "build:public-data": "node scripts/build-public-data.mjs"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.29.0",
     "vite": "^8.0.16",
     "typescript": "~5.7.2",
     "react": "^19.2.7",

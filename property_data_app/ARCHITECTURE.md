@@ -8,9 +8,23 @@ the Fabric app environment thread.
 Host: GitHub Pages
 
 - Anyone with the URL can open it.
-- Viewers do not need Power BI or Fabric login.
-- The React app calls a public API when `VITE_API_BASE_URL` is set.
-- For local/offline preview, the app falls back to `public/property-leading-indicators-public.json`.
+- Viewers sign in with Microsoft when Fabric semantic model access is configured.
+- The React app can query Fabric using the viewer's own Microsoft identity.
+- For local/offline preview, the app can still fall back to `public/property-leading-indicators-public.json`.
+
+## Fabric User-Owned Access
+
+This branch's primary path is:
+
+```text
+GitHub Pages
+  -> Microsoft Entra browser login
+  -> Power BI REST executeQueries
+  -> Fabric semantic model
+```
+
+No Fabric secret is stored in GitHub Pages. The viewer must have access to the
+semantic model.
 
 ## API Layer
 

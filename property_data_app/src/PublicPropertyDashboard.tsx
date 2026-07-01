@@ -9,6 +9,8 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
+import type { AccountInfo } from "@azure/msal-browser";
+import { executeDax, fabricConfig, getAccount, observationsDax, signIn, signOut } from "./lib/fabric-semantic-client";
 
 type Observation = {
   suburb: string;
@@ -109,8 +111,13 @@ export function PublicPropertyDashboard() {
   const [selectedSuburb, setSelectedSuburb] = useState("");
   const [selectedLens, setSelectedLens] = useState("all");
   const [selectedIndicator, setSelectedIndicator] = useState("suburb_sale_listings");
+  const [account, setAccount] = useState<AccountInfo | null>(null);
+  const [dataMode, setDataMode] = useState(fabricConfig.enabled ? "Fabric semantic model" : "Public JSON fallback");
 
   useEffect(() => {
+    if (fabricConfig.enabled) {
+      getAccount().then(setAccount).catch(() => setAccount(null));
+    }
     fetch(API_BASE ? `${API_BASE}/api/details` : DATA_URL)
       .then((response) => {
         if (!response.ok) throw new Error(`Could not load public data: ${response.status}`);
@@ -119,6 +126,34 @@ export function PublicPropertyDashboard() {
       .then(setPayload)
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
+
+  async function loadFabricData(nextAccount: AccountInfo) {
+    const rows = await executeDax<Observation>(nextAccount, observationsDax());
+    setPayload((current) => ({
+      generatedAt: new Date().toISOString(),
+      observations: rows,
+      investmentProperties: current?.investmentProperties ?? [],
+      indicators: current?.indicators ?? [],
+      fetchRuns: current?.fetchRuns ?? [],
+    }));
+    setDataMode("Fabric semantic model");
+  }
+
+  async function handleSignIn() {
+    try {
+      const nextAccount = await signIn();
+      setAccount(nextAccount);
+      await loadFabricData(nextAccount);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function handleSignOut() {
+    await signOut(account);
+    setAccount(null);
+    window.location.reload();
+  }
 
   const observations = payload?.observations ?? [];
   const properties = payload?.investmentProperties ?? [];
@@ -190,6 +225,17 @@ export function PublicPropertyDashboard() {
               <RefreshCw className={!payload ? "spin" : ""} />
               Refresh data
             </button>
+            {fabricConfig.enabled ? (
+              account ? (
+                <button type="button" onClick={handleSignOut} className="secondary-action">
+                  Sign out
+                </button>
+              ) : (
+                <button type="button" onClick={handleSignIn} className="secondary-action">
+                  Sign in with Microsoft
+                </button>
+              )
+            ) : null}
             <button type="button" onClick={() => setFiltersOpen(true)} className="secondary-action">
               <SlidersHorizontal />
               Filters
@@ -199,7 +245,7 @@ export function PublicPropertyDashboard() {
         <div className="hero-panel">
           <span>Generated</span>
           <strong>{payload ? new Date(payload.generatedAt).toLocaleString("en-AU") : "Loading..."}</strong>
-          <small>{payload ? `${payload.observations.length} observations · ${payload.fetchRuns.filter((run) => run.status === "success").length} successful fetches` : "Reading public JSON"}</small>
+          <small>{payload ? `${dataMode} · ${payload.observations.length} observations · ${payload.fetchRuns.filter((run) => run.status === "success").length} successful fetches` : "Reading data"}</small>
         </div>
       </section>
 
