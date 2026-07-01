@@ -1,0 +1,14 @@
+﻿id,country,state,city,suburb,postcode,geography_type,active
+7,AU,ACT,Canberra,,,capital_city,1
+1,AU,NSW,Sydney,,,capital_city,1
+8,AU,NT,Darwin,,,capital_city,1
+3,AU,QLD,Brisbane,,,capital_city,1
+4,AU,SA,Adelaide,,,capital_city,1
+6,AU,TAS,Hobart,,,capital_city,1
+2,AU,VIC,Melbourne,,,capital_city,1
+5,AU,WA,Perth,,,capital_city,1
+21,AU,NSW,Sydney,Hornsby,2077,suburb,1
+20,AU,NSW,Sydney,Wahroonga,2076,suburb,1
+19,AU,QLD,Brisbane,Wynnum West,4178,suburb,1
+17,AU,QLD,Gold Coast,Coomera,4209,suburb,1
+18,AU,WA,Perth,Baldivis,6171,suburb,1

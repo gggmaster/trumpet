@@ -1,0 +1,4 @@
+﻿id,address,property_label,financial_year,period_start,period_end,income,gross_expenses,recoveries_credits,net_expenses,net_after_expenses,state,city,suburb,postcode
+3,"36/35-42 Sorrento Street, Wynnum West",36/35-42 Sorrento Street,F26,2025-07-01,2026-06-30,44001.88,10647.08,976.1,9670.98,33354.8,QLD,Brisbane,Wynnum West,4178
+1,"8 Regina Street, Coomera",8 Regina Street,F26,2025-07-01,2026-06-30,40791.46,7473.42,211.46,7261.96,33318.04,QLD,Gold Coast,Coomera,4209
+2,"82 Paparone Rd, Baldivis",82 Paparone Rd,F26,2025-07-01,2026-06-30,34270.22,7401.7,270.22,7131.48,26868.52,WA,Perth,Baldivis,6171

@@ -1,0 +1,6 @@
+﻿id,source_id,started_at,finished_at,status,rows_inserted,message
+5,29,2026-06-26 13:46:35,2026-06-26 13:46:39,success,8,https://www.onthehouse.com.au/suburb/wa/baldivis-6171
+4,29,2026-06-26 13:46:32,2026-06-26 13:46:33,success,8,https://www.onthehouse.com.au/suburb/qld/wynnum-west-4178
+3,29,2026-06-26 13:46:27,2026-06-26 13:46:30,success,8,https://www.onthehouse.com.au/suburb/qld/coomera-4209
+2,29,2026-06-26 13:46:22,2026-06-26 13:46:25,success,8,https://www.onthehouse.com.au/suburb/nsw/wahroonga-2076
+1,29,2026-06-26 13:46:18,2026-06-26 13:46:21,success,8,https://www.onthehouse.com.au/suburb/nsw/hornsby-2077

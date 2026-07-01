@@ -1,0 +1,91 @@
+-- Create these measures in the Fabric/Power BI semantic model.
+
+Latest Value =
+VAR LatestDate =
+    MAX ( property_observations[period_end] )
+RETURN
+    CALCULATE (
+        MAX ( property_observations[value] ),
+        property_observations[period_end] = LatestDate
+    )
+
+Previous Value =
+VAR LatestDate =
+    MAX ( property_observations[period_end] )
+VAR PreviousDate =
+    CALCULATE (
+        MAX ( property_observations[period_end] ),
+        property_observations[period_end] < LatestDate
+    )
+RETURN
+    CALCULATE (
+        MAX ( property_observations[value] ),
+        property_observations[period_end] = PreviousDate
+    )
+
+Change =
+    [Latest Value] - [Previous Value]
+
+Change % =
+    DIVIDE ( [Change], [Previous Value] )
+
+Latest Sale Listings =
+    CALCULATE (
+        [Latest Value],
+        property_observations[indicator_code] = "suburb_sale_listings"
+    )
+
+Latest Rental Listings =
+    CALCULATE (
+        [Latest Value],
+        property_observations[indicator_code] = "suburb_rental_listings"
+    )
+
+Latest House Value 12M Change % =
+    CALCULATE (
+        [Latest Value],
+        property_observations[indicator_code] = "median_value_12m_change_house"
+    )
+
+Latest Unit Value 12M Change % =
+    CALCULATE (
+        [Latest Value],
+        property_observations[indicator_code] = "median_value_12m_change_unit"
+    )
+
+Latest House Rent 12M Change % =
+    CALCULATE (
+        [Latest Value],
+        property_observations[indicator_code] = "rental_rate_12m_change_house"
+    )
+
+Latest Unit Rent 12M Change % =
+    CALCULATE (
+        [Latest Value],
+        property_observations[indicator_code] = "rental_rate_12m_change_unit"
+    )
+
+Net After Expenses =
+    SUM ( investment_properties[net_after_expenses] )
+
+Net Expenses =
+    SUM ( investment_properties[net_expenses] )
+
+Income =
+    SUM ( investment_properties[income] )
+
+Expense Ratio =
+    DIVIDE ( [Net Expenses], [Income] )
+
+Portfolio Risk Flag =
+VAR SaleListings = [Latest Sale Listings]
+VAR RentalListings = [Latest Rental Listings]
+VAR RentGrowth = [Latest House Rent 12M Change %]
+RETURN
+    SWITCH (
+        TRUE (),
+        SaleListings > 100 && RentGrowth < 3, "Watch",
+        RentalListings > 50 && RentGrowth < 3, "Rental Pressure",
+        RentGrowth >= 5, "Rental Strong",
+        "Neutral"
+    )

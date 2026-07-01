@@ -1,0 +1,22 @@
+{
+  "name": "investment-property-pivot-point",
+  "description": "CSV-backed web data app for investment property leading indicators.",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b --noCheck && vite build",
+    "preview": "vite preview",
+    "build:public-data": "node scripts/build-public-data.mjs"
+  },
+  "dependencies": {
+    "vite": "^8.0.16",
+    "typescript": "~5.7.2",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "lucide-react": "^1.17.0"
+  },
+  "devDependencies": {}
+}

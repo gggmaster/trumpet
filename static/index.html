@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Investment File Assistant</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18211d;
+      --muted: #64706a;
+      --line: #d8dfdb;
+      --panel: #ffffff;
+      --soft: #f3f6f4;
+      --accent: #176b4d;
+      --accent-2: #d9a441;
+      --danger: #a13f34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #edf1ee;
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+    button, textarea { font: inherit; }
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+    }
+    aside {
+      padding: 24px 20px;
+      background: #202b26;
+      color: #f6faf7;
+      border-right: 1px solid #101713;
+    }
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .subtle {
+      color: #b9c6bf;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .status {
+      margin-top: 28px;
+      display: grid;
+      gap: 12px;
+    }
+    .metric {
+      padding: 12px 0;
+      border-top: 1px solid #415048;
+    }
+    .metric strong {
+      display: block;
+      font-size: 23px;
+      line-height: 1.15;
+    }
+    .metric span {
+      color: #b9c6bf;
+      font-size: 12px;
+    }
+    .privacy {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid #415048;
+      font-size: 12px;
+      color: #c8d2cc;
+      line-height: 1.5;
+    }
+    main {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      padding: 34px 34px 60px;
+    }
+    header {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 26px;
+    }
+    h1 { margin: 0 0 7px; font-size: 28px; }
+    header p { margin: 0; color: var(--muted); }
+    .icon-btn, .send {
+      border: 0;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
+    }
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 20px;
+    }
+    .icon-btn:hover, .send:hover { transform: translateY(-1px); }
+    .conversation {
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .empty {
+      padding: 64px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+    .empty strong {
+      color: var(--ink);
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .message {
+      border-bottom: 1px solid var(--line);
+      padding: 0 0 18px;
+    }
+    .message.user {
+      font-weight: 650;
+      font-size: 17px;
+    }
+    .answer {
+      line-height: 1.62;
+      white-space: pre-wrap;
+    }
+    .answer.error { color: var(--danger); }
+    .source-list {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+    details {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    summary {
+      cursor: pointer;
+      padding: 11px 13px;
+      font-size: 13px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+    .excerpt {
+      padding: 0 13px 13px;
+      color: #45514b;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    mark { background: #f6dfa7; color: inherit; }
+    .composer {
+      position: sticky;
+      bottom: 18px;
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: 1fr 48px;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(255,255,255,.96);
+      border: 1px solid #cdd6d1;
+      box-shadow: 0 12px 30px rgba(26, 41, 33, .12);
+      border-radius: 8px;
+    }
+    textarea {
+      min-height: 52px;
+      max-height: 160px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      padding: 7px 5px;
+      background: transparent;
+      color: var(--ink);
+    }
+    .send {
+      width: 48px;
+      height: 48px;
+      align-self: end;
+      border-radius: 6px;
+      background: var(--accent);
+      color: white;
+      font-size: 21px;
+    }
+    .send:disabled { opacity: .5; cursor: wait; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: #34423b;
+      color: #dbe6df;
+      font-size: 11px;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent-2);
+    }
+    @media (max-width: 760px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { padding: 18px 20px; }
+      .status { grid-template-columns: repeat(3, 1fr); margin-top: 18px; }
+      .metric { padding: 10px 0; }
+      .privacy { margin-top: 16px; }
+      main { padding: 26px 18px 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">Investment File Assistant</div>
+      <div class="subtle">Grounded answers from your OneDrive investment archive.</div>
+      <div class="badge"><span class="dot"></span><span id="mode">Checking index</span></div>
+      <div class="status">
+        <div class="metric"><strong id="files">-</strong><span>files indexed</span></div>
+        <div class="metric"><strong id="chunks">-</strong><span>searchable passages</span></div>
+        <div class="metric"><strong id="failed">-</strong><span>files needing attention</span></div>
+      </div>
+      <div class="privacy">
+        Retrieval stays on this laptop. When AI mode is enabled, only the most relevant excerpts for your question are sent to OpenAI. Source files are not uploaded wholesale.
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <h1>Ask your investment files</h1>
+          <p>Answers include the documents and locations used.</p>
+        </div>
+        <button class="icon-btn" id="reindex" title="Rebuild document index" aria-label="Rebuild document index">↻</button>
+      </header>
+      <section class="conversation" id="conversation">
+        <div class="empty" id="empty">
+          <strong>What would you like to know?</strong>
+          Try a property address, contract price, loan detail, rental statement, invoice, depreciation report, or construction milestone.
+        </div>
+      </section>
+      <form class="composer" id="form">
+        <textarea id="question" placeholder="Ask a question about your investment files..." required></textarea>
+        <button class="send" id="send" title="Ask" aria-label="Ask">↑</button>
+      </form>
+    </main>
+  </div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? "")
+      .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+
+    async function refreshStatus() {
+      const status = await fetch("/api/status").then(r => r.json());
+      $("files").textContent = status.indexed_files ?? 0;
+      $("chunks").textContent = status.indexed_chunks ?? 0;
+      $("failed").textContent = (status.failed_files ?? 0) + (status.skipped_files ?? 0);
+      $("mode").textContent = status.indexing
+        ? "Indexing files"
+        : status.ai_enabled ? `AI mode · ${status.model}` : "Local search mode";
+      $("reindex").disabled = !!status.indexing;
+      if (status.indexing) setTimeout(refreshStatus, 2500);
+    }
+
+    function addMessage(className, content) {
+      $("empty")?.remove();
+      const node = document.createElement("div");
+      node.className = `message ${className}`;
+      node.innerHTML = content;
+      $("conversation").appendChild(node);
+      node.scrollIntoView({ behavior: "smooth", block: "end" });
+      return node;
+    }
+
+    $("form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = $("question").value.trim();
+      if (!question) return;
+      addMessage("user", escapeHtml(question));
+      $("question").value = "";
+      $("send").disabled = true;
+      const pending = addMessage("assistant", '<div class="answer">Searching the archive...</div>');
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({question})
+        });
+        const data = await response.json();
+        const answer = data.error ? data.error : data.answer;
+        const sources = data.sources ?? [];
+        pending.innerHTML = `<div class="answer ${data.error ? "error" : ""}">${escapeHtml(answer)}</div>`;
+        if (sources.length) {
+          const list = document.createElement("div");
+          list.className = "source-list";
+          sources.forEach((source, i) => {
+            const item = document.createElement("details");
+            item.innerHTML = `<summary>[S${i + 1}] ${escapeHtml(source.relative_path)} · ${escapeHtml(source.locator)}</summary>
+              <div class="excerpt">${source.snippet || escapeHtml(source.text.slice(0, 700))}</div>`;
+            list.appendChild(item);
+          });
+          pending.appendChild(list);
+        }
+      } catch (error) {
+        pending.innerHTML = `<div class="answer error">${escapeHtml(error.message)}</div>`;
+      } finally {
+        $("send").disabled = false;
+        $("question").focus();
+      }
+    });
+
+    $("question").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        $("form").requestSubmit();
+      }
+    });
+
+    $("reindex").addEventListener("click", async () => {
+      await fetch("/api/reindex", {method: "POST"});
+      refreshStatus();
+    });
+
+    refreshStatus();
+  </script>
+</body>
+</html>

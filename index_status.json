@@ -1,0 +1,30 @@
+{
+  "total_files": 609,
+  "indexed_files": 47,
+  "indexed_chunks": 183,
+  "skipped_files": 562,
+  "identity_files_skipped": 4,
+  "failed_files": 0,
+  "offline_or_unavailable": 0,
+  "unsupported_by_extension": {
+    ".jpg": 154,
+    ".png": 30,
+    "(no extension)": 7,
+    ".zip": 4,
+    ".doc": 2,
+    ".pptx": 1,
+    ".jpeg": 2,
+    ".mp4": 1,
+    ".webp": 23,
+    ".xls": 1,
+    ".dwg": 1,
+    ".download": 20,
+    ".css": 6
+  },
+  "errors": [],
+  "source_root": "C:\\Users\\ll_ga\\OneDrive\\00\\investment",
+  "database": "C:\\Users\\ll_ga\\OneDrive\\job\\Finance Planning\\investment_index.db",
+  "started_at": 1781444882.2027626,
+  "updated_at": 1781444888.7382355,
+  "complete": true
+}

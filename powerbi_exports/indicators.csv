@@ -1,0 +1,20 @@
+﻿id,code,name,category,lead_lag,default_frequency,unit,higher_is,notes
+2,auction_volume,Auction volume,activity,leading,weekly,count,mixed,Market activity and seller confidence.
+11,housing_lending,Housing lending commitments,credit,confirming,monthly,aud,bullish,Credit demand confirmation.
+1,auction_clearance_rate,Auction clearance rate,demand,leading,weekly,percent,bullish,Buyer competition and confidence.
+10,building_approvals,Building approvals,future_supply,leading,monthly,count,bearish,Future dwelling supply.
+9,days_on_market,Days on market,liquidity,leading,weekly,days,bearish,Selling speed.
+6,asking_price_index,Asking price index,price_expectation,leading,weekly,index,bullish,Vendor price expectations.
+16,median_value_12m_change_house,House median value 12 month change,price_momentum,confirming,monthly,percent,bullish,Monthly suburb house value momentum from source market trends.
+17,median_value_12m_change_unit,Unit median value 12 month change,price_momentum,confirming,monthly,percent,bullish,Monthly suburb unit value momentum from source market trends.
+7,asking_rent,Asking rent,rental,leading,weekly,aud_per_week,bullish,Rental market strength.
+8,vacancy_rate,Rental vacancy rate,rental,leading,monthly,percent,bearish,Rental supply pressure.
+18,rental_rate_12m_change_house,House rental rate 12 month change,rental_momentum,leading,monthly,percent,bullish,Rolling 12 month house rental rate momentum from source market trends.
+19,rental_rate_12m_change_unit,Unit rental rate 12 month change,rental_momentum,leading,monthly,percent,bullish,Rolling 12 month unit rental rate momentum from source market trends.
+3,auction_withdrawn_rate,Auction withdrawn rate,stress,leading,weekly,percent,bearish,Vendor reluctance or weak demand.
+14,suburb_recent_sales_count,Current suburb recent sales count,suburb_liquidity,confirming,weekly,count,mixed,Recent sales count shown by the source.
+13,suburb_rental_listings,Current suburb rental listings,suburb_rental_supply,leading,weekly,count,bearish,Current properties listed for rent in the suburb.
+15,suburb_offmarket_count,Suburb off-market property count,suburb_stock,confirming,quarterly,count,neutral,Approximate off-market stock shown by the source.
+12,suburb_sale_listings,Current suburb sale listings,suburb_supply,leading,weekly,count,bearish,Current properties listed for sale in the suburb.
+4,new_listings,New listings,supply,leading,weekly,count,bearish,Fresh supply entering the market.
+5,total_listings,Total listings,supply,leading,weekly,count,bearish,Inventory available for sale.
