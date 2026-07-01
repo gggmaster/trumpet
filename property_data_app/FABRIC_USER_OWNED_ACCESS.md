@@ -79,3 +79,44 @@ confidence
 
 The public JSON fallback is still present for local testing and for the second
 anonymous branch, but this branch is intended to use Fabric as the data source.
+
+## Refresh Schedule
+
+This branch includes two refresh paths.
+
+### Local Refresh
+
+From the repo root:
+
+```powershell
+.\refresh_property_data.ps1
+```
+
+This runs:
+
+1. `fetch_property_indicators.py`
+2. `export_powerbi_csv.py`
+3. `property_data_app/scripts/build-public-data.mjs`
+
+### GitHub Actions Refresh
+
+Workflow:
+
+```text
+.github/workflows/property-data-refresh.yml
+```
+
+It runs weekly and can also be triggered manually. It refreshes the CSV and
+public JSON staging data on the `fabric-user-owned-access` branch.
+
+### Fabric Semantic Model Refresh
+
+For the full Fabric-backed route, load the refreshed CSV data into Fabric
+Lakehouse/Warehouse using the Fabric notebook under:
+
+```text
+fabric_app/notebooks/load_property_leading_indicators.py
+```
+
+Then refresh the semantic model in Fabric. The web app reads the semantic model
+with the signed-in user's own Microsoft/Fabric permissions.

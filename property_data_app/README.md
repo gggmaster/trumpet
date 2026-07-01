@@ -24,6 +24,10 @@ npm run dev
 
 The app falls back to local public JSON when `VITE_API_BASE_URL` is not set.
 
+On the `fabric-user-owned-access` branch, set the Microsoft/Fabric variables in
+`.env.local` to query the Fabric semantic model directly with the signed-in
+user's own access.
+
 ## API Endpoints
 
 - `/api/health`
