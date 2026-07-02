@@ -1,4 +1,4 @@
-name: Deploy public dashboard to GitHub Pages
+name: Deploy property data app to GitHub Pages
 
 on:
   push:
@@ -12,12 +12,15 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: property-data-app-pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: property_data_app
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,19 +30,26 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: property_data_app/package.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Build public dashboard
-        run: |
-          npm exec tsc -- -b --noCheck
-          VITE_PUBLIC_APP=true npm exec vite -- build --base /trumpet/
+      - name: Build public data
+        run: npm run build:public-data
+
+      - name: Build app
+        env:
+          VITE_ENTRA_TENANT_ID: ${{ vars.VITE_ENTRA_TENANT_ID }}
+          VITE_ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID }}
+          VITE_POWERBI_WORKSPACE_ID: ${{ vars.VITE_POWERBI_WORKSPACE_ID }}
+          VITE_POWERBI_SEMANTIC_MODEL_ID: ${{ vars.VITE_POWERBI_SEMANTIC_MODEL_ID }}
+        run: npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: property_data_app/dist
 
   deploy:
     environment:

@@ -1,0 +1,8 @@
+node_modules/
+.pnpm-store/
+dist/
+api/dist/
+*.tsbuildinfo
+.env
+.env.local
+api/local.settings.json
