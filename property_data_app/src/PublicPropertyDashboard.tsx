@@ -57,7 +57,6 @@ type Payload = {
 };
 
 const DATA_URL = `${import.meta.env.BASE_URL}property-leading-indicators-public.json`;
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 function money(value: number | null | undefined) {
   if (value == null) return "-";
@@ -118,7 +117,7 @@ export function PublicPropertyDashboard() {
     if (fabricConfig.enabled) {
       getAccount().then(setAccount).catch(() => setAccount(null));
     }
-    fetch(API_BASE ? `${API_BASE}/api/details` : DATA_URL)
+    fetch(DATA_URL)
       .then((response) => {
         if (!response.ok) throw new Error(`Could not load public data: ${response.status}`);
         return response.json() as Promise<Payload>;
@@ -215,7 +214,7 @@ export function PublicPropertyDashboard() {
     <main className="app">
       <section className="hero">
         <div className="hero-copy">
-          <div className="eyebrow">CSV backed public web app</div>
+          <div className="eyebrow">{fabricConfig.enabled ? "Fabric semantic model app" : "CSV fallback web app"}</div>
           <h1>Investment Property Pivot Point</h1>
           <p>
             Weekly suburb signals for your investment properties. Capital-city data can come later as a benchmark, but this view keeps the asset suburbs in front.

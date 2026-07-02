@@ -39,6 +39,11 @@ jobs:
         run: npm run build:public-data
 
       - name: Build app
+        env:
+          VITE_ENTRA_TENANT_ID: ${{ vars.VITE_ENTRA_TENANT_ID }}
+          VITE_ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID }}
+          VITE_POWERBI_WORKSPACE_ID: ${{ vars.VITE_POWERBI_WORKSPACE_ID }}
+          VITE_POWERBI_SEMANTIC_MODEL_ID: ${{ vars.VITE_POWERBI_SEMANTIC_MODEL_ID }}
         run: npm run build
 
       - name: Upload Pages artifact
