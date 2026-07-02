@@ -1,0 +1,42 @@
+name: Deploy property data API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: property_data_app/api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: property_data_app/pnpm-lock.yaml
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: property_data_app
+        run: pnpm install --frozen-lockfile
+
+      - name: Build API
+        working-directory: property_data_app
+        run: pnpm --filter investment-property-pivot-point-api run build
+
+      # Configure AZURE_FUNCTIONAPP_NAME and AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+      # as GitHub repository secrets before enabling this deploy step.
+      - name: Deploy to Azure Functions
+        if: ${{ false }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: property_data_app/api
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}

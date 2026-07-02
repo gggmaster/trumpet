@@ -1,0 +1,6 @@
+activeProfile: public
+profiles:
+  public:
+    mode: github-pages
+    data:
+      source: public/property-leading-indicators-public.json
