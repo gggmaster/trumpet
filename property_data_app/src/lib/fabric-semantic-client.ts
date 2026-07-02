@@ -69,8 +69,12 @@ async function getAccessToken(account: AccountInfo) {
 
 export async function executeDax<T = unknown>(account: AccountInfo, query: string): Promise<T[]> {
   const token = await getAccessToken(account);
+  const endpoint =
+    workspaceId.toLowerCase() === "me"
+      ? `https://api.powerbi.com/v1.0/myorg/datasets/${semanticModelId}/executeQueries`
+      : `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/datasets/${semanticModelId}/executeQueries`;
   const response = await fetch(
-    `https://api.powerbi.com/v1.0/myorg/groups/${workspaceId}/datasets/${semanticModelId}/executeQueries`,
+    endpoint,
     {
       method: "POST",
       headers: {
