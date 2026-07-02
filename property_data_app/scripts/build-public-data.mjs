@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { access, readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -62,6 +62,23 @@ function numberOrNull(value) {
 
 async function loadCsv(filename) {
   return parseCsv(await readFile(resolve(csvDir, filename), "utf8"));
+}
+
+async function pathExists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (!(await pathExists(resolve(csvDir, files.observations)))) {
+  if (await pathExists(publicPath)) {
+    console.log(`CSV exports not found at ${csvDir}; keeping existing ${publicPath}`);
+    process.exit(0);
+  }
+  throw new Error(`CSV exports not found at ${csvDir} and no fallback JSON exists at ${publicPath}`);
 }
 
 const observations = (await loadCsv(files.observations)).map((row) => ({
