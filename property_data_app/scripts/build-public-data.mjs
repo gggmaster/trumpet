@@ -9,7 +9,6 @@ const publicPath = resolve(root, "public", "property-leading-indicators-public.j
 
 const files = {
   observations: "observations.csv",
-  investmentProperties: "investment_properties.csv",
   indicators: "indicators.csv",
   geographies: "geographies.csv",
   fetchRuns: "fetch_runs.csv",
@@ -97,22 +96,6 @@ const observations = (await loadCsv(files.observations)).map((row) => ({
   confidence: row.confidence,
 }));
 
-const investmentProperties = (await loadCsv(files.investmentProperties)).map((row) => ({
-  address: row.address,
-  propertyLabel: row.property_label,
-  financialYear: row.financial_year,
-  periodStart: row.period_start,
-  periodEnd: row.period_end,
-  income: numberOrNull(row.income),
-  grossExpenses: numberOrNull(row.gross_expenses),
-  recoveriesCredits: numberOrNull(row.recoveries_credits),
-  netExpenses: numberOrNull(row.net_expenses),
-  netAfterExpenses: numberOrNull(row.net_after_expenses),
-  state: row.state,
-  city: row.city,
-  suburb: row.suburb,
-}));
-
 const indicators = (await loadCsv(files.indicators)).map((row) => ({
   code: row.code,
   name: row.name,
@@ -147,7 +130,6 @@ await writeFile(
       generatedAt: new Date().toISOString(),
       source: "powerbi_exports CSV",
       observations,
-      investmentProperties,
       indicators,
       geographies,
       fetchRuns,

@@ -4,7 +4,6 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Building2,
-  Home,
   RefreshCw,
   Search,
   SlidersHorizontal,
@@ -28,18 +27,6 @@ type Observation = {
   confidence: string;
 };
 
-type InvestmentProperty = {
-  address: string;
-  propertyLabel: string;
-  financialYear: string;
-  income: number | null;
-  netExpenses: number | null;
-  netAfterExpenses: number | null;
-  suburb: string;
-  city: string;
-  state: string;
-};
-
 type Indicator = {
   code: string;
   name: string;
@@ -51,7 +38,6 @@ type Indicator = {
 type Payload = {
   generatedAt: string;
   observations: Observation[];
-  investmentProperties: InvestmentProperty[];
   indicators: Indicator[];
   fetchRuns: { status: string; rowsInserted: number | null }[];
 };
@@ -131,7 +117,6 @@ export function PublicPropertyDashboard() {
     setPayload((current) => ({
       generatedAt: new Date().toISOString(),
       observations: rows,
-      investmentProperties: current?.investmentProperties ?? [],
       indicators: current?.indicators ?? [],
       fetchRuns: current?.fetchRuns ?? [],
     }));
@@ -155,7 +140,6 @@ export function PublicPropertyDashboard() {
   }
 
   const observations = payload?.observations ?? [];
-  const properties = payload?.investmentProperties ?? [];
   const latest = useMemo(() => latestBySuburbIndicator(observations), [observations]);
   const suburbs = useMemo(() => [...new Set(observations.map((row) => row.suburb).filter(Boolean))].sort(), [observations]);
   const visibleSuburbs = useMemo(() => {
@@ -187,15 +171,8 @@ export function PublicPropertyDashboard() {
     [latest, selectedSuburb, selectedLens],
   );
 
-  const selectedProperties = useMemo(
-    () => properties.filter((property) => !selectedSuburb || property.suburb === selectedSuburb),
-    [properties, selectedSuburb],
-  );
-
   const totals = useMemo(
     () => ({
-      income: selectedProperties.reduce((sum, property) => sum + (property.income ?? 0), 0),
-      netAfterExpenses: selectedProperties.reduce((sum, property) => sum + (property.netAfterExpenses ?? 0), 0),
       saleListings: latestVisible
         .filter((row) => row.indicatorCode === "suburb_sale_listings")
         .reduce((sum, row) => sum + (row.value ?? 0), 0),
@@ -203,7 +180,7 @@ export function PublicPropertyDashboard() {
         .filter((row) => row.indicatorCode === "suburb_rental_listings")
         .reduce((sum, row) => sum + (row.value ?? 0), 0),
     }),
-    [selectedProperties, latestVisible],
+    [latestVisible],
   );
 
   if (error) {
@@ -266,10 +243,10 @@ export function PublicPropertyDashboard() {
 
         <div className="workspace">
           <div className="kpi-grid">
-            <Kpi label="F26 income" value={money(totals.income)} />
-            <Kpi label="F26 net after expenses" value={money(totals.netAfterExpenses)} />
             <Kpi label="Sale listings" value={number(totals.saleListings)} />
             <Kpi label="Rental listings" value={number(totals.rentalListings)} />
+            <Kpi label="Suburbs tracked" value={number(visibleSuburbs.length)} />
+            <Kpi label="Latest signals" value={number(latestVisible.length)} />
           </div>
 
           <section className="panel">
@@ -296,11 +273,11 @@ export function PublicPropertyDashboard() {
             <section className="panel">
               <div className="panel-header">
                 <div>
-                  <h2>Investment Properties</h2>
-                  <p>Cashflow context linked to suburb trend.</p>
+                  <h2>Privacy Scope</h2>
+                  <p>This public app only publishes suburb-level market indicators. Property addresses and private cashflow figures are excluded.</p>
                 </div>
               </div>
-              <PropertyList properties={selectedProperties} latest={latest} />
+              <div className="empty-panel">Private investment property details are kept out of the GitHub Pages bundle.</div>
             </section>
           </section>
         </div>
@@ -385,27 +362,6 @@ function SignalList({ rows }: { rows: Observation[] }) {
             </article>
           );
         })}
-    </div>
-  );
-}
-
-function PropertyList({ properties, latest }: { properties: InvestmentProperty[]; latest: Observation[] }) {
-  return (
-    <div className="property-list">
-      {properties.map((property) => {
-        const rent = latest.find((row) => row.suburb === property.suburb && row.indicatorCode === "rental_rate_12m_change_house")
-          ?? latest.find((row) => row.suburb === property.suburb && row.indicatorCode === "rental_rate_12m_change_unit");
-        return (
-          <article className="property-card" key={property.address}>
-            <div className="property-icon"><Home /></div>
-            <div>
-              <strong>{property.address}</strong>
-              <span>{property.suburb}, {property.state}</span>
-              <small>Net after expenses {money(property.netAfterExpenses)} · {rent ? `${rent.indicatorName} ${formatObservation(rent)}` : "No rent signal"}</small>
-            </div>
-          </article>
-        );
-      })}
     </div>
   );
 }
