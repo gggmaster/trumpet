@@ -32,6 +32,9 @@ jobs:
           cache: npm
           cache-dependency-path: property_data_app/package.json
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Install dependencies
         run: npm install
 
