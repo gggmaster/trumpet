@@ -45,6 +45,7 @@ type Geography = {
 type LocationOption = Geography & {
   key: string;
   label: string;
+  hasData: boolean;
 };
 
 type Payload = {
@@ -81,7 +82,7 @@ function formatObservation(row: Observation) {
 function latestBySuburbIndicator(rows: Observation[]) {
   const map = new Map<string, Observation>();
   for (const row of rows) {
-    const key = `${row.suburb}|${row.indicatorCode}`;
+    const key = `${row.suburb || row.city}|${row.indicatorCode}`;
     const existing = map.get(key);
     if (!existing || row.periodEnd > existing.periodEnd) map.set(key, row);
   }
@@ -114,7 +115,7 @@ function parseLocationKey(key: string) {
 function rowMatchesLocation(row: Observation, selectedLocation: string) {
   if (!selectedLocation) return true;
   const location = parseLocationKey(selectedLocation);
-  if (location.type === "capital_city") return row.state === location.state && row.city === location.name;
+  if (location.type === "capital_city") return row.state === location.state && row.city === location.name && !row.suburb;
   return row.state === location.state && row.suburb === location.name;
 }
 
@@ -204,16 +205,22 @@ export function PublicPropertyDashboard() {
   const observations = payload?.observations ?? [];
   const latest = useMemo(() => latestBySuburbIndicator(observations), [observations]);
   const locationOptions = useMemo<LocationOption[]>(() => {
+    const directCapitalData = new Set(observations.filter((row) => !row.suburb && row.city).map((row) => `capital_city|${row.state}|${row.city}`));
+    const suburbData = new Set(observations.filter((row) => row.suburb).map((row) => `suburb|${row.state}|${row.suburb}`));
     const geographies = payload?.geographies?.length
       ? payload.geographies
       : [...new Map(observations.map((row) => [`${row.state}|${row.suburb}`, { state: row.state, city: row.city, suburb: row.suburb, geographyType: "suburb" }])).values()];
     return geographies
       .filter((geography) => geography.geographyType === "capital_city" || Boolean(geography.suburb))
-      .map((geography) => ({
-        ...geography,
-        key: locationKey(geography),
-        label: geography.geographyType === "capital_city" ? geography.city : geography.suburb,
-      }))
+      .map((geography) => {
+        const key = locationKey(geography);
+        return {
+          ...geography,
+          key,
+          label: geography.geographyType === "capital_city" ? geography.city : geography.suburb,
+          hasData: geography.geographyType === "capital_city" ? directCapitalData.has(key) : suburbData.has(key),
+        };
+      })
       .sort((a, b) => a.state.localeCompare(b.state) || (a.geographyType === b.geographyType ? a.label.localeCompare(b.label) : a.geographyType === "capital_city" ? -1 : 1));
   }, [payload?.geographies, observations]);
   const visibleLocations = useMemo(() => {
@@ -430,7 +437,7 @@ function SignalList({ rows }: { rows: Observation[] }) {
           return (
             <article className="signal" key={`${row.suburb}-${row.indicatorCode}`}>
               <div>
-                <strong>{row.suburb} · {row.indicatorName}</strong>
+                <strong>{row.suburb || row.city} · {row.indicatorName}</strong>
                 <span>{row.periodEnd} · {row.sourceName}</span>
               </div>
               <div className="signal-value">
@@ -496,7 +503,16 @@ function FilterPane({
               <strong>{state}</strong>
               {capitalCities.length ? <span>Capital city</span> : null}
               {capitalCities.map((location) => (
-                <button type="button" key={location.key} className={selectedLocation === location.key ? "selected" : ""} onClick={() => onLocation(location.key)}>{location.label}</button>
+                <button
+                  type="button"
+                  key={location.key}
+                  className={selectedLocation === location.key ? "selected" : ""}
+                  disabled={!location.hasData}
+                  title={location.hasData ? location.label : "Capital-city indicator data has not been loaded yet"}
+                  onClick={() => onLocation(location.key)}
+                >
+                  {location.label}{location.hasData ? "" : " · no city data"}
+                </button>
               ))}
               {suburbs.length ? <span>Suburbs</span> : null}
               {suburbs.map((location) => (
