@@ -91,7 +91,6 @@ function signalFor(row: Observation) {
 export function PublicPropertyDashboard() {
   const [payload, setPayload] = useState<Payload>();
   const [error, setError] = useState("");
-  const [fabricWarning, setFabricWarning] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [suburbSearch, setSuburbSearch] = useState("");
   const [selectedSuburb, setSelectedSuburb] = useState("");
@@ -126,17 +125,11 @@ export function PublicPropertyDashboard() {
 
   async function handleSignIn() {
     try {
-      setFabricWarning("");
       const nextAccount = await signIn();
       setAccount(nextAccount);
       await loadFabricData(nextAccount);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setFabricWarning(
-        message.includes("PowerBIEntityNotFound")
-          ? "Microsoft login succeeded, but Power BI could not find the configured semantic model. Check VITE_POWERBI_WORKSPACE_ID and VITE_POWERBI_SEMANTIC_MODEL_ID."
-          : message,
-      );
+      console.warn("Fabric semantic model query failed; keeping JSON fallback.", err);
       setDataMode("Public JSON fallback");
     }
   }
@@ -232,9 +225,6 @@ export function PublicPropertyDashboard() {
           <small>{payload ? `${dataMode} · ${payload.observations.length} observations · ${payload.fetchRuns.filter((run) => run.status === "success").length} successful fetches` : "Reading data"}</small>
         </div>
       </section>
-
-      {fabricWarning ? <section className="warning-banner">{fabricWarning}</section> : null}
-
       <section className="layout">
         <FilterPane
           open={filtersOpen}
