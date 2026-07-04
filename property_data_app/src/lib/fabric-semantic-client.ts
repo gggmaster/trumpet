@@ -1,7 +1,12 @@
 import { PublicClientApplication, type AccountInfo } from "@azure/msal-browser";
 
-const tenantId = import.meta.env.VITE_ENTRA_TENANT_ID || "common";
-const clientId = import.meta.env.VITE_ENTRA_CLIENT_ID || "";
+const busintsoTenantId = "26fc1ced-355d-4bb8-ba76-e9bc4c1143db";
+const testServicePrincipalClientId = "16087108-adff-40ba-af75-ec5771cb0716";
+
+const configuredTenantId = import.meta.env.VITE_ENTRA_TENANT_ID || "common";
+const configuredClientId = import.meta.env.VITE_ENTRA_CLIENT_ID || "";
+const tenantId = configuredTenantId === "common" && configuredClientId === busintsoTenantId ? busintsoTenantId : configuredTenantId;
+const clientId = configuredClientId === busintsoTenantId ? testServicePrincipalClientId : configuredClientId;
 const workspaceId = import.meta.env.VITE_POWERBI_WORKSPACE_ID || "";
 const semanticModelId = import.meta.env.VITE_POWERBI_SEMANTIC_MODEL_ID || "";
 
