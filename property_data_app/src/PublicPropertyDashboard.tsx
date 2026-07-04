@@ -35,10 +35,23 @@ type Indicator = {
   notes: string;
 };
 
+type Geography = {
+  state: string;
+  city: string;
+  suburb: string;
+  geographyType: "capital_city" | "suburb" | string;
+};
+
+type LocationOption = Geography & {
+  key: string;
+  label: string;
+};
+
 type Payload = {
   generatedAt: string;
   observations: Observation[];
   indicators: Indicator[];
+  geographies?: Geography[];
   fetchRuns: { status: string; rowsInserted: number | null }[];
 };
 
@@ -88,12 +101,59 @@ function signalFor(row: Observation) {
   return { label: "Neutral", className: "neutral", icon: Activity };
 }
 
+function locationKey(geography: Pick<Geography, "geographyType" | "state" | "city" | "suburb">) {
+  const name = geography.geographyType === "capital_city" ? geography.city : geography.suburb;
+  return `${geography.geographyType}|${geography.state}|${name}`;
+}
+
+function parseLocationKey(key: string) {
+  const [type, state, name] = key.split("|");
+  return { type, state, name };
+}
+
+function rowMatchesLocation(row: Observation, selectedLocation: string) {
+  if (!selectedLocation) return true;
+  const location = parseLocationKey(selectedLocation);
+  if (location.type === "capital_city") return row.state === location.state && row.city === location.name;
+  return row.state === location.state && row.suburb === location.name;
+}
+
+function weekBucket(dateText: string) {
+  const date = new Date(`${dateText}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateText;
+  const day = date.getDay() || 7;
+  date.setDate(date.getDate() - day + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function aggregateRows(rows: Observation[], aggregateLabel?: string) {
+  const map = new Map<string, Observation & { count: number }>();
+  for (const row of rows) {
+    if (row.value == null) continue;
+    const bucket = weekBucket(row.periodEnd);
+    const groupName = aggregateLabel || row.suburb || row.city || row.indicatorName;
+    const key = `${groupName}|${row.indicatorCode}|${bucket}`;
+    const existing = map.get(key);
+    if (existing) {
+      const nextCount = existing.count + 1;
+      const nextValue =
+        row.unit === "count"
+          ? (existing.value ?? 0) + row.value
+          : ((existing.value ?? 0) * existing.count + row.value) / nextCount;
+      map.set(key, { ...existing, value: nextValue, count: nextCount });
+    } else {
+      map.set(key, { ...row, suburb: groupName, periodEnd: bucket, count: 1 });
+    }
+  }
+  return [...map.values()].map(({ count: _count, ...row }) => row);
+}
+
 export function PublicPropertyDashboard() {
   const [payload, setPayload] = useState<Payload>();
   const [error, setError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [suburbSearch, setSuburbSearch] = useState("");
-  const [selectedSuburb, setSelectedSuburb] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedLens, setSelectedLens] = useState("all");
   const [selectedIndicator, setSelectedIndicator] = useState("suburb_sale_listings");
   const [account, setAccount] = useState<AccountInfo | null>(null);
@@ -118,6 +178,7 @@ export function PublicPropertyDashboard() {
       generatedAt: new Date().toISOString(),
       observations: rows,
       indicators: current?.indicators ?? [],
+      geographies: current?.geographies ?? [],
       fetchRuns: current?.fetchRuns ?? [],
     }));
     setDataMode("Fabric semantic model");
@@ -142,11 +203,28 @@ export function PublicPropertyDashboard() {
 
   const observations = payload?.observations ?? [];
   const latest = useMemo(() => latestBySuburbIndicator(observations), [observations]);
-  const suburbs = useMemo(() => [...new Set(observations.map((row) => row.suburb).filter(Boolean))].sort(), [observations]);
-  const visibleSuburbs = useMemo(() => {
+  const locationOptions = useMemo<LocationOption[]>(() => {
+    const geographies = payload?.geographies?.length
+      ? payload.geographies
+      : [...new Map(observations.map((row) => [`${row.state}|${row.suburb}`, { state: row.state, city: row.city, suburb: row.suburb, geographyType: "suburb" }])).values()];
+    return geographies
+      .filter((geography) => geography.geographyType === "capital_city" || Boolean(geography.suburb))
+      .map((geography) => ({
+        ...geography,
+        key: locationKey(geography),
+        label: geography.geographyType === "capital_city" ? geography.city : geography.suburb,
+      }))
+      .sort((a, b) => a.state.localeCompare(b.state) || (a.geographyType === b.geographyType ? a.label.localeCompare(b.label) : a.geographyType === "capital_city" ? -1 : 1));
+  }, [payload?.geographies, observations]);
+  const visibleLocations = useMemo(() => {
     const search = suburbSearch.trim().toLowerCase();
-    return suburbs.filter((suburb) => (search ? suburb.toLowerCase().includes(search) : true));
-  }, [suburbs, suburbSearch]);
+    return locationOptions.filter((location) => (search ? `${location.state} ${location.city} ${location.suburb} ${location.label}`.toLowerCase().includes(search) : true));
+  }, [locationOptions, suburbSearch]);
+  const selectedLocationLabel = useMemo(
+    () => locationOptions.find((location) => location.key === selectedLocation)?.label ?? "All locations",
+    [locationOptions, selectedLocation],
+  );
+  const selectedLocationType = selectedLocation ? parseLocationKey(selectedLocation).type : "";
 
   const lensFilter = (row: Observation) => {
     if (selectedLens === "house") return row.indicatorCode.includes("_house") || row.indicatorCode.includes("listings");
@@ -160,16 +238,16 @@ export function PublicPropertyDashboard() {
     () =>
       observations.filter(
         (row) =>
-          (!selectedSuburb || row.suburb === selectedSuburb) &&
+          rowMatchesLocation(row, selectedLocation) &&
           (!selectedIndicator || selectedIndicator === "all" || row.indicatorCode === selectedIndicator) &&
           lensFilter(row),
       ),
-    [observations, selectedSuburb, selectedIndicator, selectedLens],
+    [observations, selectedLocation, selectedIndicator, selectedLens],
   );
 
   const latestVisible = useMemo(
-    () => latest.filter((row) => (!selectedSuburb || row.suburb === selectedSuburb) && lensFilter(row)),
-    [latest, selectedSuburb, selectedLens],
+    () => latest.filter((row) => rowMatchesLocation(row, selectedLocation) && lensFilter(row)),
+    [latest, selectedLocation, selectedLens],
   );
 
   const totals = useMemo(
@@ -228,15 +306,15 @@ export function PublicPropertyDashboard() {
       <section className="layout">
         <FilterPane
           open={filtersOpen}
-          suburbs={visibleSuburbs}
-          selectedSuburb={selectedSuburb}
+          locations={visibleLocations}
+          selectedLocation={selectedLocation}
           suburbSearch={suburbSearch}
           selectedLens={selectedLens}
           selectedIndicator={selectedIndicator}
           indicators={payload?.indicators ?? []}
           onClose={() => setFiltersOpen(false)}
           onSearch={setSuburbSearch}
-          onSuburb={setSelectedSuburb}
+          onLocation={setSelectedLocation}
           onLens={setSelectedLens}
           onIndicator={setSelectedIndicator}
         />
@@ -245,7 +323,7 @@ export function PublicPropertyDashboard() {
           <div className="kpi-grid">
             <Kpi label="Sale listings" value={number(totals.saleListings)} />
             <Kpi label="Rental listings" value={number(totals.rentalListings)} />
-            <Kpi label="Suburbs tracked" value={number(visibleSuburbs.length)} />
+            <Kpi label="Locations tracked" value={number(visibleLocations.length)} />
             <Kpi label="Latest signals" value={number(latestVisible.length)} />
           </div>
 
@@ -253,10 +331,10 @@ export function PublicPropertyDashboard() {
             <div className="panel-header">
               <div>
                 <h2>Indicator Trend</h2>
-                <p>{selectedSuburb || "All suburbs"} · {selectedIndicator === "all" ? "All indicators" : selectedIndicator}</p>
+                <p>{selectedLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicator}</p>
               </div>
             </div>
-            <TrendChart rows={selectedObservations} />
+            <TrendChart rows={selectedObservations} aggregateLabel={selectedLocationType === "capital_city" ? selectedLocationLabel : undefined} />
           </section>
 
           <section className="grid-two">
@@ -295,8 +373,8 @@ function Kpi({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TrendChart({ rows }: { rows: Observation[] }) {
-  const chartRows = [...rows].filter((row) => row.value != null).sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
+function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLabel?: string }) {
+  const chartRows = aggregateRows(rows, aggregateLabel).sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
   const width = 860;
   const height = 330;
   const pad = { top: 26, right: 28, bottom: 42, left: 66 };
@@ -311,7 +389,7 @@ function TrendChart({ rows }: { rows: Observation[] }) {
   const y = (value: number) => height - pad.bottom - ((value - min) / span) * (height - pad.top - pad.bottom);
   const groups = new Map<string, Observation[]>();
   for (const row of chartRows) {
-    const key = rows.some((item) => item.suburb !== chartRows[0].suburb) ? row.suburb : row.indicatorName;
+    const key = aggregateLabel ?? (rows.some((item) => item.suburb !== chartRows[0].suburb) ? row.suburb : row.indicatorName);
     groups.set(key, [...(groups.get(key) ?? []), row]);
   }
   const colors = ["#0d9488", "#c47a22", "#4f67b1", "#6f8e3d", "#a74d47", "#617986"];
@@ -368,28 +446,28 @@ function SignalList({ rows }: { rows: Observation[] }) {
 
 function FilterPane({
   open,
-  suburbs,
-  selectedSuburb,
+  locations,
+  selectedLocation,
   suburbSearch,
   selectedLens,
   selectedIndicator,
   indicators,
   onClose,
   onSearch,
-  onSuburb,
+  onLocation,
   onLens,
   onIndicator,
 }: {
   open: boolean;
-  suburbs: string[];
-  selectedSuburb: string;
+  locations: LocationOption[];
+  selectedLocation: string;
   suburbSearch: string;
   selectedLens: string;
   selectedIndicator: string;
   indicators: Indicator[];
   onClose: () => void;
   onSearch: (value: string) => void;
-  onSuburb: (value: string) => void;
+  onLocation: (value: string) => void;
   onLens: (value: string) => void;
   onIndicator: (value: string) => void;
 }) {
@@ -402,16 +480,31 @@ function FilterPane({
         </div>
         <button type="button" onClick={onClose} aria-label="Close filters">×</button>
       </div>
-      <label>Search suburb</label>
+      <label>Search location</label>
       <div className="search-box">
         <Search />
-        <input value={suburbSearch} onChange={(event) => onSearch(event.target.value)} placeholder="Coomera, Hornsby..." />
+        <input value={suburbSearch} onChange={(event) => onSearch(event.target.value)} placeholder="Sydney, Coomera, Hornsby..." />
       </div>
       <div className="suburb-list">
-        <button type="button" className={!selectedSuburb ? "selected" : ""} onClick={() => onSuburb("")}>All suburbs</button>
-        {suburbs.map((suburb) => (
-          <button type="button" key={suburb} className={selectedSuburb === suburb ? "selected" : ""} onClick={() => onSuburb(suburb)}>{suburb}</button>
-        ))}
+        <button type="button" className={!selectedLocation ? "selected" : ""} onClick={() => onLocation("")}>All locations</button>
+        {[...new Set(locations.map((location) => location.state))].map((state) => {
+          const stateLocations = locations.filter((location) => location.state === state);
+          const capitalCities = stateLocations.filter((location) => location.geographyType === "capital_city");
+          const suburbs = stateLocations.filter((location) => location.geographyType !== "capital_city");
+          return (
+            <div className="location-group" key={state}>
+              <strong>{state}</strong>
+              {capitalCities.length ? <span>Capital city</span> : null}
+              {capitalCities.map((location) => (
+                <button type="button" key={location.key} className={selectedLocation === location.key ? "selected" : ""} onClick={() => onLocation(location.key)}>{location.label}</button>
+              ))}
+              {suburbs.length ? <span>Suburbs</span> : null}
+              {suburbs.map((location) => (
+                <button type="button" key={location.key} className={selectedLocation === location.key ? "selected" : ""} onClick={() => onLocation(location.key)}>{location.label}</button>
+              ))}
+            </div>
+          );
+        })}
       </div>
       <label>Indicator</label>
       <select value={selectedIndicator} onChange={(event) => onIndicator(event.target.value)}>
