@@ -291,7 +291,7 @@ export function PublicPropertyDashboard() {
     return true;
   };
 
-  const selectedObservations = useMemo(
+  const selectedLocalObservations = useMemo(
     () =>
       observations.filter(
         (row) =>
@@ -301,6 +301,22 @@ export function PublicPropertyDashboard() {
       ),
     [observations, selectedLocation, selectedIndicator, selectedLens],
   );
+  const selectedBenchmarkObservations = useMemo(
+    () =>
+      observations.filter(
+        (row) =>
+          row.state === "AUS" &&
+          row.city === "Australia" &&
+          !row.suburb &&
+          selectedIndicator !== "all" &&
+          row.indicatorCode === selectedIndicator &&
+          lensFilter(row),
+      ),
+    [observations, selectedIndicator, selectedLens],
+  );
+  const usesAustraliaBenchmark = Boolean(selectedLocation && selectedIndicator !== "all" && !selectedLocalObservations.length && selectedBenchmarkObservations.length);
+  const selectedObservations = usesAustraliaBenchmark ? selectedBenchmarkObservations : selectedLocalObservations;
+  const trendLocationLabel = usesAustraliaBenchmark ? `${selectedLocationLabel} · Australia benchmark` : selectedLocationLabel;
 
   const latestVisible = useMemo(
     () => latest.filter((row) => rowMatchesLocation(row, selectedLocation) && lensFilter(row)),
@@ -389,13 +405,13 @@ export function PublicPropertyDashboard() {
               <div>
                 <h2>Indicator Trend</h2>
                 <p>
-                  {selectedLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicatorMeta?.name ?? selectedIndicator}
+                  {trendLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicatorMeta?.name ?? selectedIndicator}
                   {selectedIndicator !== "all" ? <span className={`leadlag-chip ${leadLagClass(selectedIndicatorMeta?.leadLag)}`}>{leadLagLabel(selectedIndicatorMeta?.leadLag)}</span> : null}
                   {selectedIndicator !== "all" ? <span className="frequency-chip">{frequencyLabel(selectedFrequency)} trend</span> : null}
                 </p>
               </div>
             </div>
-            <TrendChart rows={selectedObservations} aggregateLabel={selectedLocationType === "capital_city" ? selectedLocationLabel : undefined} />
+            <TrendChart rows={selectedObservations} aggregateLabel={usesAustraliaBenchmark ? "Australia benchmark" : selectedLocationType === "capital_city" ? selectedLocationLabel : undefined} />
           </section>
 
           <section className="grid-two">

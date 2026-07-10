@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import * as XLSX from "xlsx";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicPath = resolve(root, "public", "property-leading-indicators-public.json");
@@ -16,7 +17,7 @@ const sourceRegister = [
     geography: "Australia",
     indicators: ["building_approvals"],
     sourceUrl: "https://www.abs.gov.au/statistics/industry/building-and-construction/building-approvals-australia/latest-release",
-    notes: "Uses the public ABS release chart table for a national monthly history. GCCSA/capital-city mapping can be upgraded through ABS SDMX keys later.",
+    notes: "Uses the public ABS release chart and Table 10 workbook for national and Greater Capital City monthly history.",
   },
   {
     sourceId: "abs_lending_indicators_release",
@@ -124,6 +125,12 @@ function monthEnd(label) {
   return new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10);
 }
 
+function excelDateToMonthEnd(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0)).toISOString().slice(0, 10);
+}
+
 function parseChartData(html, captionText) {
   const captionIndex = html.indexOf(captionText);
   if (captionIndex < 0) throw new Error(`Could not find chart caption: ${captionText}`);
@@ -180,7 +187,7 @@ async function fetchAbsBuildingApprovals() {
   const chart = parseChartData(html, "Dwelling units approved (a)");
   const dates = chart.data[0];
   const seasonallyAdjusted = chart.data[1];
-  return dates.map((dateLabel, index) =>
+  const nationalRows = dates.map((dateLabel, index) =>
     buildObservation({
       indicatorCode: "building_approvals",
       indicatorName: "Building approvals",
@@ -195,6 +202,61 @@ async function fetchAbsBuildingApprovals() {
       sourceUrl,
     }),
   );
+  return [...nationalRows, ...(await fetchAbsCapitalCityBuildingApprovals())];
+}
+
+async function fetchAbsCapitalCityBuildingApprovals() {
+  const sourceUrl = "https://www.abs.gov.au/statistics/industry/building-and-construction/building-approvals-australia/may-2026/87310010.xlsx";
+  const response = await fetch(sourceUrl);
+  if (!response.ok) throw new Error(`ABS building approvals Table 10 failed: ${response.status}`);
+  const workbook = XLSX.read(await response.arrayBuffer(), { type: "array", cellDates: true });
+  const sheet = workbook.Sheets.Data1;
+  if (!sheet) throw new Error("ABS building approvals Table 10 missing Data1 sheet");
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+  const cityColumns = new Map([
+    ["Sydney", { state: "NSW", description: "Greater Sydney" }],
+    ["Melbourne", { state: "VIC", description: "Greater Melbourne" }],
+    ["Brisbane", { state: "QLD", description: "Greater Brisbane" }],
+    ["Adelaide", { state: "SA", description: "Greater Adelaide" }],
+    ["Perth", { state: "WA", description: "Greater Perth" }],
+    ["Hobart", { state: "TAS", description: "Greater Hobart" }],
+    ["Darwin", { state: "NT", description: "Greater Darwin" }],
+    ["Canberra", { state: "ACT", description: "Australian Capital Territory" }],
+  ]);
+  const header = rows[0] ?? [];
+  const columns = [];
+  for (let index = 1; index < header.length; index += 1) {
+    const text = String(header[index] ?? "");
+    if (!text.includes("Total (Type of Building)")) continue;
+    for (const [city, meta] of cityColumns.entries()) {
+      if (text.includes(meta.description)) columns.push({ index, city, state: meta.state });
+    }
+  }
+  const output = [];
+  for (const row of rows.slice(10)) {
+    const periodEnd = excelDateToMonthEnd(row[0]);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(periodEnd)) continue;
+    for (const column of columns) {
+      output.push(
+        buildObservation({
+          state: column.state,
+          city: column.city,
+          indicatorCode: "building_approvals",
+          indicatorName: "Building approvals",
+          category: "future_supply",
+          leadLag: "leading",
+          unit: "count",
+          higherIs: "bearish",
+          sourceName: "ABS Building Approvals",
+          periodEnd,
+          value: numberOrNull(row[column.index]),
+          frequency: "monthly",
+          sourceUrl,
+        }),
+      );
+    }
+  }
+  return output.filter((row) => row.value != null);
 }
 
 async function fetchAbsLendingIndicators() {
