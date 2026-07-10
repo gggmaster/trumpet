@@ -31,6 +31,7 @@ type Indicator = {
   code: string;
   name: string;
   category: string;
+  leadLag?: string;
   higherIs: string;
   notes: string;
 };
@@ -100,6 +101,21 @@ function signalFor(row: Observation) {
     if (row.indicatorCode === "suburb_rental_listings" && value > 50) return { label: "Rental Pressure", className: "warn", icon: ArrowUpRight };
   }
   return { label: "Neutral", className: "neutral", icon: Activity };
+}
+
+function leadLagLabel(value: string | undefined) {
+  if (!value) return "Other";
+  if (value === "leading") return "Leading";
+  if (value === "lagging") return "Lagging";
+  if (value === "confirming") return "Confirming";
+  return value.replace(/_/g, " ");
+}
+
+function leadLagClass(value: string | undefined) {
+  if (value === "leading") return "lead";
+  if (value === "lagging") return "lag";
+  if (value === "confirming") return "confirm";
+  return "other";
 }
 
 function locationKey(geography: Pick<Geography, "geographyType" | "state" | "city" | "suburb">) {
@@ -232,6 +248,10 @@ export function PublicPropertyDashboard() {
     [locationOptions, selectedLocation],
   );
   const selectedLocationType = selectedLocation ? parseLocationKey(selectedLocation).type : "";
+  const selectedIndicatorMeta = useMemo(
+    () => payload?.indicators.find((indicator) => indicator.code === selectedIndicator),
+    [payload?.indicators, selectedIndicator],
+  );
 
   const lensFilter = (row: Observation) => {
     if (selectedLens === "house") return row.indicatorCode.includes("_house") || row.indicatorCode.includes("listings");
@@ -280,7 +300,7 @@ export function PublicPropertyDashboard() {
           <div className="eyebrow">{fabricConfig.enabled ? "Fabric semantic model app" : "CSV fallback web app"}</div>
           <h1>Investment Property Pivot Point</h1>
           <p>
-            Weekly suburb signals for your investment properties. Capital-city data can come later as a benchmark, but this view keeps the asset suburbs in front.
+            Weekly suburb signals for tracked suburbs. Capital-city data can come later as a benchmark, but this view keeps the tracked suburbs in front.
           </p>
           <div className="hero-actions">
             <button type="button" onClick={() => window.location.reload()} className="primary-action">
@@ -338,7 +358,10 @@ export function PublicPropertyDashboard() {
             <div className="panel-header">
               <div>
                 <h2>Indicator Trend</h2>
-                <p>{selectedLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicator}</p>
+                <p>
+                  {selectedLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicatorMeta?.name ?? selectedIndicator}
+                  {selectedIndicator !== "all" ? <span className={`leadlag-chip ${leadLagClass(selectedIndicatorMeta?.leadLag)}`}>{leadLagLabel(selectedIndicatorMeta?.leadLag)}</span> : null}
+                </p>
               </div>
             </div>
             <TrendChart rows={selectedObservations} aggregateLabel={selectedLocationType === "capital_city" ? selectedLocationLabel : undefined} />
@@ -438,7 +461,7 @@ function SignalList({ rows }: { rows: Observation[] }) {
             <article className="signal" key={`${row.suburb}-${row.indicatorCode}`}>
               <div>
                 <strong>{row.suburb || row.city} · {row.indicatorName}</strong>
-                <span>{row.periodEnd} · {row.sourceName}</span>
+                <span>{row.periodEnd} · {row.sourceName} · <em className={`leadlag-inline ${leadLagClass(row.leadLag)}`}>{leadLagLabel(row.leadLag)}</em></span>
               </div>
               <div className="signal-value">
                 <b>{formatObservation(row)}</b>
@@ -525,7 +548,15 @@ function FilterPane({
       <label>Indicator</label>
       <select value={selectedIndicator} onChange={(event) => onIndicator(event.target.value)}>
         <option value="all">All indicators</option>
-        {indicators.map((indicator) => <option key={indicator.code} value={indicator.code}>{indicator.name}</option>)}
+        {["leading", "confirming", "lagging", "other"].map((group) => {
+          const groupedIndicators = indicators.filter((indicator) => (indicator.leadLag ?? "other") === group);
+          if (!groupedIndicators.length) return null;
+          return (
+            <optgroup key={group} label={leadLagLabel(group)}>
+              {groupedIndicators.map((indicator) => <option key={indicator.code} value={indicator.code}>{indicator.name}</option>)}
+            </optgroup>
+          );
+        })}
       </select>
       <label>Lens</label>
       <select value={selectedLens} onChange={(event) => onLens(event.target.value)}>
