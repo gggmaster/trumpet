@@ -25,6 +25,7 @@ type Observation = {
   periodEnd: string;
   value: number | null;
   confidence: string;
+  frequency?: string;
 };
 
 type Indicator = {
@@ -33,6 +34,7 @@ type Indicator = {
   category: string;
   leadLag?: string;
   higherIs: string;
+  frequency?: string;
   notes: string;
 };
 
@@ -54,6 +56,7 @@ type Payload = {
   observations: Observation[];
   indicators: Indicator[];
   geographies?: Geography[];
+  sourceRegister?: { sourceName: string; class: string; status: string; frequency: string; notes: string }[];
   fetchRuns: { status: string; rowsInserted: number | null }[];
 };
 
@@ -77,6 +80,7 @@ function formatObservation(row: Observation) {
   if (row.value == null) return "-";
   if (row.unit === "percent") return `${row.value.toFixed(1)}%`;
   if (row.unit === "aud" || row.unit === "aud_per_week") return money(row.value);
+  if (row.unit === "aud_billion") return `$${number(row.value)}b`;
   return number(row.value);
 }
 
@@ -119,6 +123,7 @@ function leadLagClass(value: string | undefined) {
 }
 
 function locationKey(geography: Pick<Geography, "geographyType" | "state" | "city" | "suburb">) {
+  if (geography.geographyType === "national") return `national|${geography.state}|${geography.city}`;
   const name = geography.geographyType === "capital_city" ? geography.city : geography.suburb;
   return `${geography.geographyType}|${geography.state}|${name}`;
 }
@@ -131,6 +136,7 @@ function parseLocationKey(key: string) {
 function rowMatchesLocation(row: Observation, selectedLocation: string) {
   if (!selectedLocation) return true;
   const location = parseLocationKey(selectedLocation);
+  if (location.type === "national") return row.state === location.state && row.city === location.name && !row.suburb;
   if (location.type === "capital_city") return row.state === location.state && row.city === location.name && !row.suburb;
   return row.state === location.state && row.suburb === location.name;
 }
@@ -143,11 +149,30 @@ function weekBucket(dateText: string) {
   return date.toISOString().slice(0, 10);
 }
 
+function periodBucket(dateText: string, frequency?: string) {
+  if (frequency === "weekly") return weekBucket(dateText);
+  if (frequency === "quarterly") {
+    const date = new Date(`${dateText}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return dateText;
+    const quarter = Math.floor(date.getMonth() / 3) + 1;
+    return `${date.getFullYear()} Q${quarter}`;
+  }
+  if (frequency === "monthly") return dateText.slice(0, 7);
+  return dateText;
+}
+
+function frequencyLabel(value: string | undefined) {
+  if (value === "weekly") return "Weekly";
+  if (value === "monthly") return "Monthly";
+  if (value === "quarterly") return "Quarterly";
+  return "Mixed";
+}
+
 function aggregateRows(rows: Observation[], aggregateLabel?: string) {
   const map = new Map<string, Observation & { count: number }>();
   for (const row of rows) {
     if (row.value == null) continue;
-    const bucket = weekBucket(row.periodEnd);
+    const bucket = periodBucket(row.periodEnd, row.frequency);
     const groupName = aggregateLabel || row.suburb || row.city || row.indicatorName;
     const key = `${groupName}|${row.indicatorCode}|${bucket}`;
     const existing = map.get(key);
@@ -222,22 +247,26 @@ export function PublicPropertyDashboard() {
   const latest = useMemo(() => latestBySuburbIndicator(observations), [observations]);
   const locationOptions = useMemo<LocationOption[]>(() => {
     const directCapitalData = new Set(observations.filter((row) => !row.suburb && row.city).map((row) => `capital_city|${row.state}|${row.city}`));
+    const nationalData = new Set(observations.filter((row) => row.state === "AUS" && !row.suburb).map((row) => `national|${row.state}|${row.city}`));
     const suburbData = new Set(observations.filter((row) => row.suburb).map((row) => `suburb|${row.state}|${row.suburb}`));
     const geographies = payload?.geographies?.length
       ? payload.geographies
       : [...new Map(observations.map((row) => [`${row.state}|${row.suburb}`, { state: row.state, city: row.city, suburb: row.suburb, geographyType: "suburb" }])).values()];
     return geographies
-      .filter((geography) => geography.geographyType === "capital_city" || Boolean(geography.suburb))
+      .filter((geography) => geography.geographyType === "national" || geography.geographyType === "capital_city" || Boolean(geography.suburb))
       .map((geography) => {
         const key = locationKey(geography);
         return {
           ...geography,
           key,
-          label: geography.geographyType === "capital_city" ? geography.city : geography.suburb,
-          hasData: geography.geographyType === "capital_city" ? directCapitalData.has(key) : suburbData.has(key),
+          label: geography.geographyType === "capital_city" || geography.geographyType === "national" ? geography.city : geography.suburb,
+          hasData: geography.geographyType === "national" ? nationalData.has(key) : geography.geographyType === "capital_city" ? directCapitalData.has(key) : suburbData.has(key),
         };
       })
-      .sort((a, b) => a.state.localeCompare(b.state) || (a.geographyType === b.geographyType ? a.label.localeCompare(b.label) : a.geographyType === "capital_city" ? -1 : 1));
+      .sort((a, b) => {
+        const order = { national: 0, capital_city: 1, suburb: 2 } as Record<string, number>;
+        return (order[a.geographyType] ?? 3) - (order[b.geographyType] ?? 3) || a.state.localeCompare(b.state) || a.label.localeCompare(b.label);
+      });
   }, [payload?.geographies, observations]);
   const visibleLocations = useMemo(() => {
     const search = suburbSearch.trim().toLowerCase();
@@ -252,6 +281,7 @@ export function PublicPropertyDashboard() {
     () => payload?.indicators.find((indicator) => indicator.code === selectedIndicator),
     [payload?.indicators, selectedIndicator],
   );
+  const selectedFrequency = selectedIndicator === "all" ? undefined : selectedIndicatorMeta?.frequency;
 
   const lensFilter = (row: Observation) => {
     if (selectedLens === "house") return row.indicatorCode.includes("_house") || row.indicatorCode.includes("listings");
@@ -361,6 +391,7 @@ export function PublicPropertyDashboard() {
                 <p>
                   {selectedLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicatorMeta?.name ?? selectedIndicator}
                   {selectedIndicator !== "all" ? <span className={`leadlag-chip ${leadLagClass(selectedIndicatorMeta?.leadLag)}`}>{leadLagLabel(selectedIndicatorMeta?.leadLag)}</span> : null}
+                  {selectedIndicator !== "all" ? <span className="frequency-chip">{frequencyLabel(selectedFrequency)} trend</span> : null}
                 </p>
               </div>
             </div>
@@ -381,12 +412,21 @@ export function PublicPropertyDashboard() {
             <section className="panel">
               <div className="panel-header">
                 <div>
-                  <h2>Privacy Scope</h2>
-                  <p>This public app only publishes suburb-level market indicators. Property addresses and private cashflow figures are excluded.</p>
+                <h2>Privacy Scope</h2>
+                <p>This public app only publishes suburb-level market indicators. Property addresses and private cashflow figures are excluded.</p>
                 </div>
               </div>
               <div className="empty-panel">Private investment property details are kept out of the GitHub Pages bundle.</div>
             </section>
+          </section>
+          <section className="panel">
+            <div className="panel-header">
+              <div>
+                <h2>Source Register</h2>
+                <p>A-class sources are enabled; B-class sources are option slots until API access or data permission is confirmed.</p>
+              </div>
+            </div>
+            <SourceRegister rows={payload?.sourceRegister ?? []} />
           </section>
         </div>
       </section>
@@ -461,7 +501,7 @@ function SignalList({ rows }: { rows: Observation[] }) {
             <article className="signal" key={`${row.suburb}-${row.indicatorCode}`}>
               <div>
                 <strong>{row.suburb || row.city} · {row.indicatorName}</strong>
-                <span>{row.periodEnd} · {row.sourceName} · <em className={`leadlag-inline ${leadLagClass(row.leadLag)}`}>{leadLagLabel(row.leadLag)}</em></span>
+                <span>{row.periodEnd} · {frequencyLabel(row.frequency)} · {row.sourceName} · <em className={`leadlag-inline ${leadLagClass(row.leadLag)}`}>{leadLagLabel(row.leadLag)}</em></span>
               </div>
               <div className="signal-value">
                 <b>{formatObservation(row)}</b>
@@ -470,6 +510,27 @@ function SignalList({ rows }: { rows: Observation[] }) {
             </article>
           );
         })}
+    </div>
+  );
+}
+
+function SourceRegister({ rows }: { rows: NonNullable<Payload["sourceRegister"]> }) {
+  if (!rows.length) return <div className="empty-panel">No source register loaded.</div>;
+  return (
+    <div className="source-register">
+      {rows.map((row) => (
+        <article key={row.sourceName} className="source-row">
+          <div>
+            <strong>{row.sourceName}</strong>
+            <span>{row.notes}</span>
+          </div>
+          <div className="source-tags">
+            <em>{row.class}</em>
+            <b>{frequencyLabel(row.frequency)}</b>
+            <small>{row.status.replaceAll("_", " ")}</small>
+          </div>
+        </article>
+      ))}
     </div>
   );
 }
@@ -519,11 +580,24 @@ function FilterPane({
         <button type="button" className={!selectedLocation ? "selected" : ""} onClick={() => onLocation("")}>All locations</button>
         {[...new Set(locations.map((location) => location.state))].map((state) => {
           const stateLocations = locations.filter((location) => location.state === state);
+          const nationalLocations = stateLocations.filter((location) => location.geographyType === "national");
           const capitalCities = stateLocations.filter((location) => location.geographyType === "capital_city");
-          const suburbs = stateLocations.filter((location) => location.geographyType !== "capital_city");
+          const suburbs = stateLocations.filter((location) => location.geographyType !== "capital_city" && location.geographyType !== "national");
           return (
             <div className="location-group" key={state}>
               <strong>{state}</strong>
+              {nationalLocations.length ? <span>National</span> : null}
+              {nationalLocations.map((location) => (
+                <button
+                  type="button"
+                  key={location.key}
+                  className={selectedLocation === location.key ? "selected" : ""}
+                  disabled={!location.hasData}
+                  onClick={() => onLocation(location.key)}
+                >
+                  {location.label}
+                </button>
+              ))}
               {capitalCities.length ? <span>Capital city</span> : null}
               {capitalCities.map((location) => (
                 <button

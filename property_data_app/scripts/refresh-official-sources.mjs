@@ -1,0 +1,370 @@
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const publicPath = resolve(root, "public", "property-leading-indicators-public.json");
+
+const sourceRegister = [
+  {
+    sourceId: "abs_building_approvals_release",
+    sourceName: "ABS Building Approvals",
+    class: "A",
+    status: "enabled",
+    access: "public_release_page",
+    frequency: "monthly",
+    geography: "Australia",
+    indicators: ["building_approvals"],
+    sourceUrl: "https://www.abs.gov.au/statistics/industry/building-and-construction/building-approvals-australia/latest-release",
+    notes: "Uses the public ABS release chart table for a national monthly history. GCCSA/capital-city mapping can be upgraded through ABS SDMX keys later.",
+  },
+  {
+    sourceId: "abs_lending_indicators_release",
+    sourceName: "ABS Lending Indicators",
+    class: "A",
+    status: "enabled",
+    access: "public_release_page",
+    frequency: "quarterly",
+    geography: "Australia",
+    indicators: ["housing_lending"],
+    sourceUrl: "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release",
+    notes: "Uses the public ABS release chart table for quarterly dwelling loan commitments.",
+  },
+  {
+    sourceId: "rba_d2_credit",
+    sourceName: "RBA D2 Lending and Credit Aggregates",
+    class: "A",
+    status: "enabled",
+    access: "public_csv",
+    frequency: "monthly",
+    geography: "Australia",
+    indicators: ["housing_credit_owner_occupier", "housing_credit_investor"],
+    sourceUrl: "https://www.rba.gov.au/statistics/tables/csv/d2-data.csv",
+    notes: "Monthly national housing credit balances. Macro context rather than suburb-level signal.",
+  },
+  {
+    sourceId: "domain_or_proptrack_auctions",
+    sourceName: "Domain or PropTrack Auction Results",
+    class: "B",
+    status: "optional_needs_approval",
+    access: "developer_api_or_limited_public_page",
+    frequency: "weekly",
+    geography: "Capital city",
+    indicators: ["auction_volume", "auction_clearance_rate", "auction_withdrawn_rate"],
+    sourceUrl: "https://www.domain.com.au/auction-results/",
+    notes: "Strong leading indicators. Prefer an official API/API key before automated historical collection.",
+  },
+  {
+    sourceId: "sqm_vacancy_rents",
+    sourceName: "SQM Research Vacancy and Asking Rents",
+    class: "B",
+    status: "optional_needs_purchase_or_permission",
+    access: "paid_csv_or_public_releases",
+    frequency: "monthly",
+    geography: "Capital city / postcode",
+    indicators: ["vacancy_rate", "asking_rent"],
+    sourceUrl: "https://sqmresearch.com.au/property/buy-chart-data",
+    notes: "Excellent rental leading indicators, but underlying historical CSV is a paid/licensed data product.",
+  },
+  {
+    sourceId: "domain_or_proptrack_listings",
+    sourceName: "Domain or PropTrack Listings",
+    class: "B",
+    status: "optional_needs_api",
+    access: "developer_api",
+    frequency: "weekly",
+    geography: "Suburb / capital city",
+    indicators: ["new_listings", "total_listings", "days_on_market", "asking_price_index", "suburb_sale_listings", "suburb_rental_listings"],
+    sourceUrl: "https://developer.domain.com.au/",
+    notes: "Best fit for suburb-level leading indicators. Needs API access/terms confirmation.",
+  },
+];
+
+const officialIndicators = [
+  {
+    code: "housing_credit_owner_occupier",
+    name: "Owner-occupier housing credit",
+    category: "credit",
+    leadLag: "confirming",
+    unit: "aud_billion",
+    higherIs: "bullish",
+    frequency: "monthly",
+    notes: "RBA monthly national owner-occupier housing credit balance.",
+  },
+  {
+    code: "housing_credit_investor",
+    name: "Investor housing credit",
+    category: "credit",
+    leadLag: "leading",
+    unit: "aud_billion",
+    higherIs: "bullish",
+    frequency: "monthly",
+    notes: "RBA monthly national investor housing credit balance.",
+  },
+];
+
+function decodeHtml(value) {
+  return value
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&#039;", "'")
+    .replaceAll("&nbsp;", " ");
+}
+
+function numberOrNull(value) {
+  if (value == null || value === "") return null;
+  const parsed = Number(String(value).replaceAll(",", ""));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function monthEnd(label) {
+  const [monthText, yearText] = label.split("-");
+  const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].indexOf(monthText);
+  const year = 2000 + Number(yearText);
+  return new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10);
+}
+
+function parseChartData(html, captionText) {
+  const captionIndex = html.indexOf(captionText);
+  if (captionIndex < 0) throw new Error(`Could not find chart caption: ${captionText}`);
+  const block = html.slice(captionIndex, captionIndex + 80000);
+  const headersMatch = block.match(/<pre class="chart-headers">([\s\S]*?)<\/pre>/);
+  const dataMatch = block.match(/<pre class="chart-data">([\s\S]*?)<\/pre>/);
+  if (!headersMatch || !dataMatch) throw new Error(`Could not find chart data for: ${captionText}`);
+  return {
+    headers: JSON.parse(decodeHtml(headersMatch[1])),
+    data: JSON.parse(decodeHtml(dataMatch[1])),
+  };
+}
+
+function buildObservation({
+  state = "AUS",
+  city = "Australia",
+  indicatorCode,
+  indicatorName,
+  category,
+  leadLag,
+  unit,
+  higherIs,
+  sourceName,
+  periodEnd,
+  value,
+  frequency,
+  sourceUrl,
+}) {
+  return {
+    suburb: "",
+    city,
+    state,
+    indicatorCode,
+    indicatorName,
+    category,
+    leadLag,
+    unit,
+    higherIs,
+    sourceName,
+    periodEnd,
+    value,
+    confidence: "normal",
+    frequency,
+    sourceUrl,
+  };
+}
+
+async function fetchAbsBuildingApprovals() {
+  const sourceUrl = sourceRegister[0].sourceUrl;
+  const html = await fetch(sourceUrl).then((response) => {
+    if (!response.ok) throw new Error(`ABS building approvals failed: ${response.status}`);
+    return response.text();
+  });
+  const chart = parseChartData(html, "Dwelling units approved (a)");
+  const dates = chart.data[0];
+  const seasonallyAdjusted = chart.data[1];
+  return dates.map((dateLabel, index) =>
+    buildObservation({
+      indicatorCode: "building_approvals",
+      indicatorName: "Building approvals",
+      category: "future_supply",
+      leadLag: "leading",
+      unit: "count",
+      higherIs: "bearish",
+      sourceName: "ABS Building Approvals",
+      periodEnd: monthEnd(dateLabel),
+      value: numberOrNull(seasonallyAdjusted[index]?.[0]),
+      frequency: "monthly",
+      sourceUrl,
+    }),
+  );
+}
+
+async function fetchAbsLendingIndicators() {
+  const sourceUrl = sourceRegister[1].sourceUrl;
+  const html = await fetch(sourceUrl).then((response) => {
+    if (!response.ok) throw new Error(`ABS lending indicators failed: ${response.status}`);
+    return response.text();
+  });
+  const chart = parseChartData(html, "Number of new loan commitments for dwellings");
+  const dates = chart.data[0];
+  const totalDwellings = chart.data[1];
+  return dates.map((dateLabel, index) =>
+    buildObservation({
+      indicatorCode: "housing_lending",
+      indicatorName: "Housing lending commitments",
+      category: "credit",
+      leadLag: "confirming",
+      unit: "count",
+      higherIs: "bullish",
+      sourceName: "ABS Lending Indicators",
+      periodEnd: monthEnd(dateLabel),
+      value: numberOrNull(totalDwellings[index]?.[0]),
+      frequency: "quarterly",
+      sourceUrl,
+    }),
+  );
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let value = "";
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+    if (quoted) {
+      if (char === '"' && next === '"') {
+        value += '"';
+        index += 1;
+      } else if (char === '"') {
+        quoted = false;
+      } else {
+        value += char;
+      }
+    } else if (char === '"') {
+      quoted = true;
+    } else if (char === ",") {
+      cells.push(value);
+      value = "";
+    } else {
+      value += char;
+    }
+  }
+  cells.push(value);
+  return cells;
+}
+
+async function fetchRbaCredit() {
+  const sourceUrl = sourceRegister[2].sourceUrl;
+  const csv = await fetch(sourceUrl).then((response) => {
+    if (!response.ok) throw new Error(`RBA D2 failed: ${response.status}`);
+    return response.text();
+  });
+  const lines = csv.split(/\r?\n/).filter(Boolean);
+  const seriesIds = parseCsvLine(lines.find((line) => line.startsWith("Series ID,"))).slice(1);
+  const ownerIndex = seriesIds.indexOf("DLCACOHS") + 1;
+  const investorIndex = seriesIds.indexOf("DLCACIHS") + 1;
+  const rows = [];
+  for (const line of lines.slice(11)) {
+    const cells = parseCsvLine(line);
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(cells[0])) continue;
+    const [day, month, year] = cells[0].split("/");
+    const periodEnd = `${year}-${month}-${day}`;
+    rows.push(
+      buildObservation({
+        indicatorCode: "housing_credit_owner_occupier",
+        indicatorName: "Owner-occupier housing credit",
+        category: "credit",
+        leadLag: "confirming",
+        unit: "aud_billion",
+        higherIs: "bullish",
+        sourceName: "RBA D2 Lending and Credit Aggregates",
+        periodEnd,
+        value: numberOrNull(cells[ownerIndex]),
+        frequency: "monthly",
+        sourceUrl,
+      }),
+      buildObservation({
+        indicatorCode: "housing_credit_investor",
+        indicatorName: "Investor housing credit",
+        category: "credit",
+        leadLag: "leading",
+        unit: "aud_billion",
+        higherIs: "bullish",
+        sourceName: "RBA D2 Lending and Credit Aggregates",
+        periodEnd,
+        value: numberOrNull(cells[investorIndex]),
+        frequency: "monthly",
+        sourceUrl,
+      }),
+    );
+  }
+  return rows.filter((row) => row.value != null);
+}
+
+function mergeByKey(existing, incoming) {
+  const map = new Map();
+  for (const row of existing) {
+    map.set(`${row.state}|${row.city}|${row.suburb}|${row.indicatorCode}|${row.sourceName}|${row.periodEnd}`, row);
+  }
+  for (const row of incoming) {
+    map.set(`${row.state}|${row.city}|${row.suburb}|${row.indicatorCode}|${row.sourceName}|${row.periodEnd}`, row);
+  }
+  return [...map.values()].sort((a, b) => a.periodEnd.localeCompare(b.periodEnd) || a.indicatorCode.localeCompare(b.indicatorCode));
+}
+
+const payload = JSON.parse((await readFile(publicPath, "utf8")).replace(/^\uFEFF/, ""));
+const officialRows = [
+  ...(await fetchAbsBuildingApprovals()),
+  ...(await fetchAbsLendingIndicators()),
+  ...(await fetchRbaCredit()),
+];
+
+const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
+for (const indicator of officialIndicators) indicatorMap.set(indicator.code, indicator);
+for (const indicator of indicatorMap.values()) {
+  if (!indicator.frequency) {
+    const sample = [...(payload.observations ?? []), ...officialRows].find((row) => row.indicatorCode === indicator.code);
+    indicator.frequency = sample?.frequency ?? (indicator.code.startsWith("suburb_") ? "weekly" : "monthly");
+  }
+}
+
+const geographies = payload.geographies ?? [];
+if (!geographies.some((geo) => geo.geographyType === "national" && geo.city === "Australia")) {
+  geographies.unshift({ state: "AUS", city: "Australia", suburb: "", postcode: "", geographyType: "national" });
+}
+
+const observations = mergeByKey(
+  (payload.observations ?? []).map((row) => ({
+    ...row,
+    frequency: row.frequency ?? (row.indicatorCode.startsWith("suburb_") ? "weekly" : "monthly"),
+  })),
+  officialRows,
+);
+
+await writeFile(
+  publicPath,
+  JSON.stringify(
+    {
+      ...payload,
+      generatedAt: new Date().toISOString(),
+      source: "public JSON with official source backfill",
+      sourceRegister,
+      observations,
+      indicators: [...indicatorMap.values()].sort((a, b) => a.name.localeCompare(b.name)),
+      geographies,
+      fetchRuns: [
+        ...(payload.fetchRuns ?? []),
+        {
+          startedAt: new Date().toISOString(),
+          finishedAt: new Date().toISOString(),
+          status: "success",
+          rowsInserted: officialRows.length,
+          message: "Refreshed A-class official ABS/RBA backfill",
+        },
+      ],
+    },
+    null,
+    2,
+  ),
+);
+
+console.log(`Refreshed ${officialRows.length} official observations into ${publicPath}`);

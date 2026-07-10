@@ -16,38 +16,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: fabric-user-owned-access
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-
-      - name: Fetch latest property indicators
-        run: python fetch_property_indicators.py
-
-      - name: Export CSV files
-        run: python export_powerbi_csv.py
-
-      - name: Build public data payload
+      - name: Build public data payload with official backfill
         working-directory: property_data_app
-        run: node scripts/build-public-data.mjs
+        run: npm install && npm run build:public-data
 
       - name: Commit refreshed data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          branch: fabric-user-owned-access
+          branch: main
           commit_message: "Refresh property indicator data"
           file_pattern: |
-            powerbi_exports/*.csv
             property_data_app/public/property-leading-indicators-public.json

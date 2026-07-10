@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc -b --noCheck && vite build",
     "preview": "vite preview",
-    "build:public-data": "node scripts/build-public-data.mjs"
+    "build:public-data": "node scripts/build-public-data.mjs && node scripts/refresh-official-sources.mjs",
+    "refresh:official": "node scripts/refresh-official-sources.mjs"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.29.0",

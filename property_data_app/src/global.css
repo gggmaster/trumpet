@@ -73,6 +73,7 @@ select { width: 100%; min-height: 40px; border: 1px solid #37504d; border-radius
 .leadlag-chip.confirm { background: #e8edf7; }
 .leadlag-chip.lag { background: #edf2f1; }
 .leadlag-chip.other { background: #eef3f2; }
+.frequency-chip { display: inline-flex; margin-left: 8px; border-radius: 4px; padding: 2px 6px; background: #eef3f2; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
 .chart { display: block; width: 100%; min-height: 310px; }
 .grid-line { stroke: #e4ebea; }
 .axis { stroke: #9dafac; }
@@ -93,6 +94,14 @@ select { width: 100%; min-height: 40px; border: 1px solid #37504d; border-radius
 .warn { background: #fbefd9; color: var(--warn); }
 .risk { background: #f7e5e3; color: var(--risk); }
 .neutral { background: #eef3f2; color: var(--muted); }
+.source-register { display: grid; gap: 8px; }
+.source-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #edf1f0; }
+.source-row:last-child { border-bottom: 0; }
+.source-row strong { display: block; font-size: 13px; }
+.source-row span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.source-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 340px; }
+.source-tags em, .source-tags b, .source-tags small { border-radius: 4px; padding: 4px 7px; background: #eef3f2; color: var(--muted); font-size: 11px; font-style: normal; font-weight: 800; text-transform: uppercase; }
+.source-tags em { background: #e3f4f1; color: #0f766e; }
 .error-state { min-height: 100vh; display: grid; place-items: center; padding: 24px; color: var(--risk); }
 @media (max-width: 1040px) {
   .hero { grid-template-columns: 1fr; }
