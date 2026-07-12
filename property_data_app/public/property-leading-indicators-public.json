@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-10T13:41:41.823Z",
+  "generatedAt": "2026-07-12T20:47:32.458Z",
   "source": "public JSON with official source backfill",
   "observations": [
     {
@@ -60659,6 +60659,13 @@
     {
       "startedAt": "2026-07-10T13:41:41.823Z",
       "finishedAt": "2026-07-10T13:41:41.823Z",
+      "status": "success",
+      "rowsInserted": 3488,
+      "message": "Refreshed A-class official ABS/RBA backfill"
+    },
+    {
+      "startedAt": "2026-07-12T20:47:32.458Z",
+      "finishedAt": "2026-07-12T20:47:32.458Z",
       "status": "success",
       "rowsInserted": 3488,
       "message": "Refreshed A-class official ABS/RBA backfill"
