@@ -507,20 +507,6 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
 
   return (
     <div className="chart-shell">
-      <div className="chart-toolbar">
-        <label htmlFor="chart-zoom">Zoom</label>
-        <input
-          id="chart-zoom"
-          type="range"
-          min="1"
-          max="3"
-          step="0.25"
-          value={zoom}
-          onInput={(event) => setZoom(Number(event.currentTarget.value))}
-          onChange={(event) => setZoom(Number(event.currentTarget.value))}
-        />
-        <span>{Math.round(zoom * 100)}%</span>
-      </div>
       <div className="chart-scroll" role="region" aria-label="Scrollable trend chart">
         <svg width={width} height={height} className="chart" role="img">
           {[0, 1, 2, 3].map((line) => {
@@ -543,6 +529,20 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
           <text className="chart-label" x={pad.left} y={height - 12}>{dates[0]}</text>
           <text className="chart-label" x={width - pad.right - 96} y={height - 12}>{dates[dates.length - 1]}</text>
         </svg>
+      </div>
+      <div className="chart-toolbar">
+        <label htmlFor="chart-zoom">Zoom</label>
+        <input
+          id="chart-zoom"
+          type="range"
+          min="1"
+          max="3"
+          step="0.25"
+          value={zoom}
+          onInput={(event) => setZoom(Number(event.currentTarget.value))}
+          onChange={(event) => setZoom(Number(event.currentTarget.value))}
+        />
+        <span>{Math.round(zoom * 100)}%</span>
       </div>
     </div>
   );

@@ -76,8 +76,8 @@ option.option-muted { color: #7e918e; }
 .leadlag-chip.other { background: #eef3f2; }
 .frequency-chip { display: inline-flex; margin-left: 8px; border-radius: 4px; padding: 2px 6px; background: #eef3f2; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
 .chart-shell { display: grid; gap: 10px; }
-.chart-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
-.chart-toolbar input { width: min(260px, 42vw); accent-color: var(--accent); }
+.chart-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr) 48px; align-items: center; gap: 10px; width: 100%; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.chart-toolbar input { width: 100%; accent-color: var(--accent); }
 .chart-toolbar span { min-width: 44px; text-align: right; }
 .chart-scroll { width: 100%; height: 360px; overflow: auto; border: 1px solid #edf1f0; border-radius: 8px; background: #fbfdfc; }
 .chart { display: block; width: auto; height: auto; min-width: 900px; min-height: 340px; }
