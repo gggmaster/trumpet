@@ -204,7 +204,6 @@ export function PublicPropertyDashboard() {
   const [selectedLens, setSelectedLens] = useState("all");
   const [selectedIndicator, setSelectedIndicator] = useState("suburb_sale_listings");
   const [account, setAccount] = useState<AccountInfo | null>(null);
-  const [dataMode, setDataMode] = useState(fabricConfig.enabled ? "Fabric semantic model" : "Public JSON fallback");
 
   useEffect(() => {
     if (fabricConfig.enabled) {
@@ -228,7 +227,6 @@ export function PublicPropertyDashboard() {
       geographies: current?.geographies ?? [],
       fetchRuns: current?.fetchRuns ?? [],
     }));
-    setDataMode("Fabric semantic model");
   }
 
   async function handleSignIn() {
@@ -237,8 +235,7 @@ export function PublicPropertyDashboard() {
       setAccount(nextAccount);
       await loadFabricData(nextAccount);
     } catch (err) {
-      console.warn("Fabric semantic model query failed; keeping JSON fallback.", err);
-      setDataMode("Public JSON fallback");
+      console.warn("Live market feed query failed; keeping the current market snapshot.", err);
     }
   }
 
@@ -367,10 +364,10 @@ export function PublicPropertyDashboard() {
     <main className="app">
       <section className="hero">
         <div className="hero-copy">
-          <div className="eyebrow">{fabricConfig.enabled ? "Fabric semantic model app" : "CSV fallback web app"}</div>
+          <div className="eyebrow">Property signal tracker</div>
           <h1>Investment Property Pivot Point</h1>
           <p>
-            Weekly suburb signals for tracked suburbs. Capital-city data can come later as a benchmark, but this view keeps the tracked suburbs in front.
+            Clean weekly and monthly market signals for the suburbs and capital cities you care about.
           </p>
           <div className="hero-actions">
             <button type="button" onClick={() => window.location.reload()} className="primary-action">
@@ -395,9 +392,9 @@ export function PublicPropertyDashboard() {
           </div>
         </div>
         <div className="hero-panel">
-          <span>Generated</span>
+          <span>Updated</span>
           <strong>{payload ? new Date(payload.generatedAt).toLocaleString("en-AU") : "Loading..."}</strong>
-          <small>{payload ? `${dataMode} · ${payload.observations.length} observations · ${payload.fetchRuns.filter((run) => run.status === "success").length} successful fetches` : "Reading data"}</small>
+          <small>{payload ? `${payload.observations.length} market signals · ${payload.fetchRuns.filter((run) => run.status === "success").length} refreshes` : "Reading market signals"}</small>
         </div>
       </section>
       <section className="layout">
@@ -456,14 +453,14 @@ export function PublicPropertyDashboard() {
                 <p>This public app only publishes suburb-level market indicators. Property addresses and private cashflow figures are excluded.</p>
                 </div>
               </div>
-              <div className="empty-panel">Private investment property details are kept out of the GitHub Pages bundle.</div>
+              <div className="empty-panel">Private investment property details are excluded from this public view.</div>
             </section>
           </section>
           <section className="panel">
             <div className="panel-header">
               <div>
                 <h2>Source Register</h2>
-                <p>A-class sources are enabled; B-class sources are option slots until API access or data permission is confirmed.</p>
+                <p>Active sources refresh automatically. Optional sources are listed for future coverage decisions.</p>
               </div>
             </div>
             <SourceRegister rows={payload?.sourceRegister ?? []} />
@@ -615,18 +612,29 @@ function SignalList({ rows }: { rows: Observation[] }) {
 
 function SourceRegister({ rows }: { rows: NonNullable<Payload["sourceRegister"]> }) {
   if (!rows.length) return <div className="empty-panel">No source register loaded.</div>;
+  const sourceNote = (value: string) =>
+    value
+      .replace(/CSV/gi, "history file")
+      .replace(/API access\/terms confirmation/gi, "partner feed approval")
+      .replace(/API key/gi, "access key")
+      .replace(/\bAPI\b/g, "feed");
+  const sourceStatus = (value: string) =>
+    value
+      .replaceAll("_", " ")
+      .replace(/\bapi\b/gi, "feed")
+      .replace(/csv/gi, "history file");
   return (
     <div className="source-register">
       {rows.map((row) => (
         <article key={row.sourceName} className="source-row">
           <div>
             <strong>{row.sourceName}</strong>
-            <span>{row.notes}</span>
+            <span>{sourceNote(row.notes)}</span>
           </div>
           <div className="source-tags">
             <em>{row.class}</em>
             <b>{frequencyLabel(row.frequency)}</b>
-            <small>{row.status.replaceAll("_", " ")}</small>
+            <small>{sourceStatus(row.status)}</small>
           </div>
         </article>
       ))}
@@ -665,8 +673,8 @@ function FilterPane({
     <aside className={`filters ${open ? "open" : ""}`}>
       <div className="filters-header">
         <div>
-          <div className="eyebrow">Slicers</div>
-          <h2>Analysis controls</h2>
+          <div className="eyebrow">Explore</div>
+          <h2>Filters</h2>
         </div>
         <button type="button" onClick={onClose} aria-label="Close filters">×</button>
       </div>
@@ -744,7 +752,7 @@ function FilterPane({
       </select>
       <div className="filter-note">
         <Building2 />
-        <span>CSV is the temporary database. This app is ready for GitHub Pages and can later swap to API or Fabric data.</span>
+        <span>Choose a location, then pick one signal to see its trend and latest reading.</span>
       </div>
     </aside>
   );
