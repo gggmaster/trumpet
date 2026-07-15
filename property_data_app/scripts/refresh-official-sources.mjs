@@ -44,6 +44,18 @@ const sourceRegister = [
     notes: "Monthly national housing credit balances. Macro context rather than suburb-level signal.",
   },
   {
+    sourceId: "sqm_capital_city_auction_history",
+    sourceName: "SQM Research Auction Results",
+    class: "B",
+    status: "enabled_free_public_page",
+    access: "public_html_personal_reference",
+    frequency: "weekly",
+    geography: "Capital city",
+    indicators: ["auction_volume", "auction_clearance_rate"],
+    sourceUrl: "https://sqmresearch.com.au/property/auction-results",
+    notes: "Two-year weekly capital-city auction volume and clearance history from SQM Research public state auction pages.",
+  },
+  {
     sourceId: "domain_auction_results",
     sourceName: "Domain Auction Results",
     class: "B",
@@ -53,7 +65,7 @@ const sourceRegister = [
     geography: "Capital city",
     indicators: ["auction_volume", "auction_clearance_rate", "auction_withdrawn_rate"],
     sourceUrl: "https://www.domain.com.au/auction-results/",
-    notes: "Free public weekly capital-city auction table parsed from Domain's auction results page.",
+    notes: "Free public weekly capital-city auction table retained for withdrawn-rate observations; historical volume and clearance use SQM Research.",
   },
   {
     sourceId: "sqm_postcode_listings_rents",
@@ -625,6 +637,53 @@ async function fetchSqmSuburbHistory(geography) {
   return rows;
 }
 
+async function fetchSqmAuctionHistory(state, city) {
+  const sourceUrl = `https://sqmresearch.com.au/property/auction-results?state=${state}`;
+  const response = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+  if (!response.ok) throw new Error(`SQM auction history failed: ${response.status}`);
+  const html = await response.text();
+  const match = html.match(/const auction_history\s*=\s*(\[[^;]+\]);/);
+  if (!match) throw new Error(`SQM auction history not found for ${state}`);
+  const history = JSON.parse(match[1]);
+  const cutoff = twoYearCutoff(history, "enddate");
+  const rows = [];
+  for (const item of history.filter((row) => row.enddate >= cutoff)) {
+    rows.push(
+      buildObservation({
+        state,
+        city,
+        indicatorCode: "auction_clearance_rate",
+        indicatorName: "Auction clearance rate",
+        category: "demand",
+        leadLag: "leading",
+        unit: "percent",
+        higherIs: "bullish",
+        sourceName: "SQM Research",
+        periodEnd: item.enddate,
+        value: Number(item.clearance) * 100,
+        frequency: "weekly",
+        sourceUrl,
+      }),
+      buildObservation({
+        state,
+        city,
+        indicatorCode: "auction_volume",
+        indicatorName: "Auction volume",
+        category: "activity",
+        leadLag: "leading",
+        unit: "count",
+        higherIs: "mixed",
+        sourceName: "SQM Research",
+        periodEnd: item.enddate,
+        value: Number(item.ttl),
+        frequency: "weekly",
+        sourceUrl,
+      }),
+    );
+  }
+  return rows.filter((row) => Number.isFinite(row.value));
+}
+
 function mergeByKey(existing, incoming) {
   const map = new Map();
   for (const row of existing) {
@@ -660,12 +719,39 @@ for (const geography of (payload.geographies ?? []).filter((item) => item.geogra
     console.warn(`SQM refresh skipped for ${message}`);
   }
 }
+const sqmAuctionRows = [];
+const sqmAuctionSuccessfulCities = new Set();
+const sqmAuctionMessages = [];
+const auctionCities = {
+  NSW: "Sydney",
+  VIC: "Melbourne",
+  QLD: "Brisbane",
+  SA: "Adelaide",
+  WA: "Perth",
+  TAS: "Hobart",
+  NT: "Darwin",
+  ACT: "Canberra",
+};
+for (const [state, city] of Object.entries(auctionCities)) {
+  try {
+    const rows = await fetchSqmAuctionHistory(state, city);
+    sqmAuctionRows.push(...rows);
+    sqmAuctionSuccessfulCities.add(`${state}|${city}`);
+    sqmAuctionMessages.push(`${city}: ${rows.length} rows`);
+  } catch (error) {
+    const message = `${city}: ${error instanceof Error ? error.message : String(error)}`;
+    sqmAuctionMessages.push(message);
+    console.warn(`SQM auction refresh skipped for ${message}`);
+  }
+}
+const sqmAuctionCodes = new Set(["auction_clearance_rate", "auction_volume"]);
 const officialRows = [
   ...(await fetchAbsBuildingApprovals()),
   ...(await fetchAbsLendingIndicators()),
   ...(await fetchRbaCredit()),
-  ...domainRows,
+  ...domainRows.filter((row) => !(sqmAuctionCodes.has(row.indicatorCode) && sqmAuctionSuccessfulCities.has(`${row.state}|${row.city}`))),
   ...sqmRows,
+  ...sqmAuctionRows,
 ];
 
 const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
@@ -688,10 +774,13 @@ const observations = mergeByKey(
     frequency: row.frequency ?? (row.indicatorCode.startsWith("suburb_") ? "weekly" : "monthly"),
   })).filter((row) => {
     const sqmCodes = new Set(["suburb_sale_listings", "suburb_rental_listings", "rental_rate_12m_change_house"]);
-    return !(
+    const replacedSuburbRow =
       sqmCodes.has(row.indicatorCode) &&
-      (row.sourceName === "SQM Research" || (sqmSuccessfulSuburbs.has(`${row.state}|${row.suburb}`) && row.sourceName !== "SQM Research"))
-    );
+      (row.sourceName === "SQM Research" || (sqmSuccessfulSuburbs.has(`${row.state}|${row.suburb}`) && row.sourceName !== "SQM Research"));
+    const replacedAuctionRow =
+      sqmAuctionCodes.has(row.indicatorCode) &&
+      sqmAuctionSuccessfulCities.has(`${row.state}|${row.city}`);
+    return !(replacedSuburbRow || replacedAuctionRow);
   }),
   officialRows,
 );
@@ -714,7 +803,7 @@ await writeFile(
           finishedAt: new Date().toISOString(),
           status: "success",
           rowsInserted: officialRows.length,
-          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}`,
+          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}. SQM auction history: ${sqmAuctionMessages.join("; ")}`,
         },
       ],
     },

@@ -77,6 +77,11 @@ option.option-muted { color: #7e918e; }
 .leadlag-chip.other { background: #eef3f2; }
 .frequency-chip { display: inline-flex; margin-left: 8px; border-radius: 4px; padding: 2px 6px; background: #eef3f2; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
 .chart-shell { display: grid; gap: 10px; }
+.chart-compare-legend { display: flex; justify-content: flex-end; gap: 16px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.chart-compare-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.chart-compare-legend i { width: 22px; height: 3px; border-radius: 999px; }
+.legend-current { background: #0d9488; }
+.legend-previous { background: #cbd5d3; }
 .chart-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr) 48px; align-items: center; gap: 10px; width: 100%; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
 .chart-toolbar input { width: 100%; accent-color: var(--accent); }
 .chart-toolbar span { min-width: 44px; text-align: right; }
@@ -85,6 +90,7 @@ option.option-muted { color: #7e918e; }
 .grid-line { stroke: #e4ebea; }
 .axis { stroke: #9dafac; }
 .chart-line { fill: none; stroke-width: 3; }
+.chart-line-previous { stroke: #cbd5d3; stroke-width: 3; stroke-dasharray: 7 6; opacity: .9; }
 .chart-label { fill: var(--muted); font-size: 12px; }
 .chart-point { cursor: crosshair; outline: none; }
 .chart-hover-line { stroke: #27423f; stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .75; }

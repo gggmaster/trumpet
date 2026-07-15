@@ -502,9 +502,34 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
     groups.set(key, [...(groups.get(key) ?? []), row]);
   }
   const colors = ["#0d9488", "#c47a22", "#4f67b1", "#6f8e3d", "#a74d47", "#617986"];
+  const comparisonPoints = new Map<string, string>();
+  if (groups.size === 1) {
+    for (const [name, group] of groups) {
+      const latestDate = new Date(`${group[group.length - 1].periodEnd}T00:00:00Z`);
+      const currentYearStart = new Date(latestDate);
+      currentYearStart.setUTCFullYear(currentYearStart.getUTCFullYear() - 1);
+      const currentRows = group.filter((row) => new Date(`${row.periodEnd}T00:00:00Z`) >= currentYearStart);
+      const aligned = currentRows.flatMap((current) => {
+        const target = new Date(`${current.periodEnd}T00:00:00Z`);
+        target.setUTCFullYear(target.getUTCFullYear() - 1);
+        const prior = group
+          .map((candidate) => ({ candidate, distance: Math.abs(new Date(`${candidate.periodEnd}T00:00:00Z`).getTime() - target.getTime()) }))
+          .filter(({ distance }) => distance <= 12 * 24 * 60 * 60 * 1000)
+          .sort((a, b) => a.distance - b.distance)[0]?.candidate;
+        return prior?.value == null ? [] : [`${x(current.periodEnd)},${y(prior.value)}`];
+      });
+      if (aligned.length > 1) comparisonPoints.set(name, aligned.join(" "));
+    }
+  }
 
   return (
     <div className="chart-shell">
+      {comparisonPoints.size ? (
+        <div className="chart-compare-legend" aria-label="Trend comparison legend">
+          <span><i className="legend-current" />Trend</span>
+          <span><i className="legend-previous" />Previous year aligned</span>
+        </div>
+      ) : null}
       <div className="chart-scroll" role="region" aria-label="Scrollable trend chart">
         <svg width={width} height={height} className="chart" role="img">
           {[0, 1, 2, 3].map((line) => {
@@ -518,6 +543,7 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
             const last = group[group.length - 1];
             return (
               <g key={name}>
+                {comparisonPoints.has(name) ? <polyline className="chart-line chart-line-previous" points={comparisonPoints.get(name)} /> : null}
                 <polyline className="chart-line" style={{ stroke: colors[index] }} points={points} />
                 {group.map((row) => {
                   const cx = x(row.periodEnd);
