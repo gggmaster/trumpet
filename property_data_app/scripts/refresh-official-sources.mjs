@@ -56,16 +56,16 @@ const sourceRegister = [
     notes: "Free public weekly capital-city auction table parsed from Domain's auction results page.",
   },
   {
-    sourceId: "sqm_vacancy_rents",
-    sourceName: "SQM Research Vacancy and Asking Rents",
+    sourceId: "sqm_postcode_listings_rents",
+    sourceName: "SQM Research Postcode Listings and Asking Rents",
     class: "B",
-    status: "optional_needs_purchase_or_permission",
-    access: "paid_csv_or_public_releases",
-    frequency: "monthly",
-    geography: "Capital city / postcode",
-    indicators: ["vacancy_rate", "asking_rent"],
-    sourceUrl: "https://sqmresearch.com.au/property/buy-chart-data",
-    notes: "Excellent rental leading indicators, but underlying historical CSV is a paid/licensed data product.",
+    status: "enabled_free_public_page",
+    access: "public_html_personal_reference",
+    frequency: "weekly_and_monthly",
+    geography: "Tracked suburb postcode",
+    indicators: ["suburb_sale_listings", "suburb_rental_listings", "rental_rate_12m_change_house"],
+    sourceUrl: "https://sqmresearch.com.au/property",
+    notes: "Two-year postcode history from SQM public charts for personal reference: monthly sale listings, weekly rental listings, and weekly house asking-rent annual change.",
   },
   {
     sourceId: "domain_or_proptrack_listings",
@@ -82,6 +82,36 @@ const sourceRegister = [
 ];
 
 const officialIndicators = [
+  {
+    code: "suburb_sale_listings",
+    name: "Current suburb sale listings",
+    category: "supply",
+    leadLag: "leading",
+    unit: "count",
+    higherIs: "bearish",
+    frequency: "monthly",
+    notes: "Monthly postcode sale listing stock from SQM Research, summed across listing-age bands.",
+  },
+  {
+    code: "suburb_rental_listings",
+    name: "Current suburb rental listings",
+    category: "rental",
+    leadLag: "leading",
+    unit: "count",
+    higherIs: "bearish",
+    frequency: "weekly",
+    notes: "Weekly postcode rental listing stock from SQM Research, summed across listing-age bands.",
+  },
+  {
+    code: "rental_rate_12m_change_house",
+    name: "House rental rate 12 month change",
+    category: "rental",
+    leadLag: "confirming",
+    unit: "percent",
+    higherIs: "bullish",
+    frequency: "weekly",
+    notes: "Weekly annual change calculated from SQM Research all-house asking rents.",
+  },
   {
     code: "auction_clearance_rate",
     name: "Auction clearance rate",
@@ -197,6 +227,7 @@ function parseChartData(html, captionText) {
 function buildObservation({
   state = "AUS",
   city = "Australia",
+  suburb = "",
   indicatorCode,
   indicatorName,
   category,
@@ -210,7 +241,7 @@ function buildObservation({
   sourceUrl,
 }) {
   return {
-    suburb: "",
+    suburb,
     city,
     state,
     indicatorCode,
@@ -494,6 +525,106 @@ async function fetchDomainAuctionResults() {
   return rows.filter((row) => row.value != null);
 }
 
+function parseSqmChartData(html, sourceUrl) {
+  const match = html.match(/var data\s*=\s*(\[[^;]+\]);/);
+  if (!match) throw new Error(`SQM chart data not found: ${sourceUrl}`);
+  return JSON.parse(match[1]);
+}
+
+function twoYearCutoff(rows, dateField) {
+  const latest = rows.map((row) => row[dateField]).filter(Boolean).sort().at(-1);
+  if (!latest) return "";
+  const cutoff = new Date(`${latest}T00:00:00Z`);
+  cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 2);
+  return cutoff.toISOString().slice(0, 10);
+}
+
+function listingBandTotal(row) {
+  return ["r30", "r60", "r90", "r180", "r180p"].reduce((sum, key) => sum + (Number(row[key]) || 0), 0);
+}
+
+async function fetchSqmPage(sourceUrl) {
+  const response = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+  if (!response.ok) throw new Error(`SQM Research failed: ${response.status}`);
+  return parseSqmChartData(await response.text(), sourceUrl);
+}
+
+async function fetchSqmSuburbHistory(geography) {
+  const base = "https://sqmresearch.com.au/property";
+  const saleUrl = `${base}/total-property-listings?postcode=${geography.postcode}&t=1`;
+  const rentalUrl = `${base}/total-rent-listings?postcode=${geography.postcode}&t=1`;
+  const rentsUrl = `${base}/weekly-rents?postcode=${geography.postcode}&t=1`;
+  const [saleData, rentalData, rentsData] = await Promise.all([
+    fetchSqmPage(saleUrl),
+    fetchSqmPage(rentalUrl),
+    fetchSqmPage(rentsUrl),
+  ]);
+
+  const saleRows = saleData.map((row) => ({ ...row, date: `${row.year}-${String(row.month).padStart(2, "0")}-01` }));
+  const saleCutoff = twoYearCutoff(saleRows, "date");
+  const rentalCutoff = twoYearCutoff(rentalData, "date");
+  const rentCutoff = twoYearCutoff(rentsData, "date");
+  const rentByDate = new Map(rentsData.map((row) => [row.date, Number(row.houses_all)]));
+  const rows = [];
+
+  for (const row of saleRows.filter((item) => item.date >= saleCutoff)) {
+    rows.push(buildObservation({
+      ...geography,
+      indicatorCode: "suburb_sale_listings",
+      indicatorName: "Current suburb sale listings",
+      category: "supply",
+      leadLag: "leading",
+      unit: "count",
+      higherIs: "bearish",
+      sourceName: "SQM Research",
+      periodEnd: row.date,
+      value: listingBandTotal(row),
+      frequency: "monthly",
+      sourceUrl: saleUrl,
+    }));
+  }
+
+  for (const row of rentalData.filter((item) => item.date >= rentalCutoff)) {
+    rows.push(buildObservation({
+      ...geography,
+      indicatorCode: "suburb_rental_listings",
+      indicatorName: "Current suburb rental listings",
+      category: "rental",
+      leadLag: "leading",
+      unit: "count",
+      higherIs: "bearish",
+      sourceName: "SQM Research",
+      periodEnd: row.date,
+      value: listingBandTotal(row),
+      frequency: "weekly",
+      sourceUrl: rentalUrl,
+    }));
+  }
+
+  for (const row of rentsData.filter((item) => item.date >= rentCutoff)) {
+    const priorDate = new Date(`${row.date}T00:00:00Z`);
+    priorDate.setUTCFullYear(priorDate.getUTCFullYear() - 1);
+    const prior = rentByDate.get(priorDate.toISOString().slice(0, 10));
+    const current = Number(row.houses_all);
+    if (!Number.isFinite(current) || !Number.isFinite(prior) || prior === 0) continue;
+    rows.push(buildObservation({
+      ...geography,
+      indicatorCode: "rental_rate_12m_change_house",
+      indicatorName: "House rental rate 12 month change",
+      category: "rental",
+      leadLag: "confirming",
+      unit: "percent",
+      higherIs: "bullish",
+      sourceName: "SQM Research",
+      periodEnd: row.date,
+      value: (current / prior - 1) * 100,
+      frequency: "weekly",
+      sourceUrl: rentsUrl,
+    }));
+  }
+  return rows;
+}
+
 function mergeByKey(existing, incoming) {
   const map = new Map();
   for (const row of existing) {
@@ -514,11 +645,27 @@ try {
   domainRefreshMessage = `Domain auction refresh skipped; retained previous observations (${error instanceof Error ? error.message : String(error)})`;
   console.warn(domainRefreshMessage);
 }
+const sqmRows = [];
+const sqmSuccessfulSuburbs = new Set();
+const sqmMessages = [];
+for (const geography of (payload.geographies ?? []).filter((item) => item.geographyType === "suburb" && item.postcode)) {
+  try {
+    const rows = await fetchSqmSuburbHistory(geography);
+    sqmRows.push(...rows);
+    sqmSuccessfulSuburbs.add(`${geography.state}|${geography.suburb}`);
+    sqmMessages.push(`${geography.suburb}: ${rows.length} rows`);
+  } catch (error) {
+    const message = `${geography.suburb}: ${error instanceof Error ? error.message : String(error)}`;
+    sqmMessages.push(message);
+    console.warn(`SQM refresh skipped for ${message}`);
+  }
+}
 const officialRows = [
   ...(await fetchAbsBuildingApprovals()),
   ...(await fetchAbsLendingIndicators()),
   ...(await fetchRbaCredit()),
   ...domainRows,
+  ...sqmRows,
 ];
 
 const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
@@ -539,7 +686,13 @@ const observations = mergeByKey(
   (payload.observations ?? []).map((row) => ({
     ...row,
     frequency: row.frequency ?? (row.indicatorCode.startsWith("suburb_") ? "weekly" : "monthly"),
-  })),
+  })).filter((row) => {
+    const sqmCodes = new Set(["suburb_sale_listings", "suburb_rental_listings", "rental_rate_12m_change_house"]);
+    return !(
+      sqmCodes.has(row.indicatorCode) &&
+      (row.sourceName === "SQM Research" || (sqmSuccessfulSuburbs.has(`${row.state}|${row.suburb}`) && row.sourceName !== "SQM Research"))
+    );
+  }),
   officialRows,
 );
 
@@ -561,7 +714,7 @@ await writeFile(
           finishedAt: new Date().toISOString(),
           status: "success",
           rowsInserted: officialRows.length,
-          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}`,
+          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}`,
         },
       ],
     },
