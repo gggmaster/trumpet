@@ -460,9 +460,10 @@ function Kpi({ label, value }: { label: string; value: string }) {
 }
 
 function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLabel?: string }) {
+  const [zoom, setZoom] = useState(1);
   const chartRows = aggregateRows(rows, aggregateLabel).sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
-  const width = 860;
-  const height = 330;
+  const width = Math.round(900 * zoom);
+  const height = Math.round(340 * zoom);
   const pad = { top: 26, right: 28, bottom: 42, left: 66 };
   if (!chartRows.length) return <div className="empty-panel">No observations for this filter.</div>;
 
@@ -481,27 +482,45 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
   const colors = ["#0d9488", "#c47a22", "#4f67b1", "#6f8e3d", "#a74d47", "#617986"];
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="chart" role="img">
-      {[0, 1, 2, 3].map((line) => {
-        const yy = pad.top + line * ((height - pad.top - pad.bottom) / 3);
-        return <line key={line} className="grid-line" x1={pad.left} x2={width - pad.right} y1={yy} y2={yy} />;
-      })}
-      <line className="axis" x1={pad.left} x2={width - pad.right} y1={height - pad.bottom} y2={height - pad.bottom} />
-      <line className="axis" x1={pad.left} x2={pad.left} y1={pad.top} y2={height - pad.bottom} />
-      {[...groups.entries()].slice(0, 6).map(([name, group], index) => {
-        const points = group.map((row) => `${x(row.periodEnd)},${y(row.value ?? 0)}`).join(" ");
-        const last = group[group.length - 1];
-        return (
-          <g key={name}>
-            <polyline className="chart-line" style={{ stroke: colors[index] }} points={points} />
-            {group.map((row) => <circle key={`${name}-${row.periodEnd}`} cx={x(row.periodEnd)} cy={y(row.value ?? 0)} r="4" style={{ fill: colors[index] }} />)}
-            <text className="chart-label" x={Math.min(x(last.periodEnd) + 8, width - 210)} y={y(last.value ?? 0) - 7}>{name}</text>
-          </g>
-        );
-      })}
-      <text className="chart-label" x={pad.left} y={height - 12}>{dates[0]}</text>
-      <text className="chart-label" x={width - pad.right - 96} y={height - 12}>{dates[dates.length - 1]}</text>
-    </svg>
+    <div className="chart-shell">
+      <div className="chart-toolbar">
+        <label htmlFor="chart-zoom">Zoom</label>
+        <input
+          id="chart-zoom"
+          type="range"
+          min="1"
+          max="3"
+          step="0.25"
+          value={zoom}
+          onInput={(event) => setZoom(Number(event.currentTarget.value))}
+          onChange={(event) => setZoom(Number(event.currentTarget.value))}
+        />
+        <span>{Math.round(zoom * 100)}%</span>
+      </div>
+      <div className="chart-scroll" role="region" aria-label="Scrollable trend chart">
+        <svg width={width} height={height} className="chart" role="img">
+          {[0, 1, 2, 3].map((line) => {
+            const yy = pad.top + line * ((height - pad.top - pad.bottom) / 3);
+            return <line key={line} className="grid-line" x1={pad.left} x2={width - pad.right} y1={yy} y2={yy} />;
+          })}
+          <line className="axis" x1={pad.left} x2={width - pad.right} y1={height - pad.bottom} y2={height - pad.bottom} />
+          <line className="axis" x1={pad.left} x2={pad.left} y1={pad.top} y2={height - pad.bottom} />
+          {[...groups.entries()].slice(0, 6).map(([name, group], index) => {
+            const points = group.map((row) => `${x(row.periodEnd)},${y(row.value ?? 0)}`).join(" ");
+            const last = group[group.length - 1];
+            return (
+              <g key={name}>
+                <polyline className="chart-line" style={{ stroke: colors[index] }} points={points} />
+                {group.map((row) => <circle key={`${name}-${row.state}-${row.city}-${row.suburb}-${row.indicatorCode}-${row.periodEnd}`} cx={x(row.periodEnd)} cy={y(row.value ?? 0)} r="4" style={{ fill: colors[index] }} />)}
+                <text className="chart-label" x={Math.min(x(last.periodEnd) + 8, width - 210)} y={y(last.value ?? 0) - 7}>{name}</text>
+              </g>
+            );
+          })}
+          <text className="chart-label" x={pad.left} y={height - 12}>{dates[0]}</text>
+          <text className="chart-label" x={width - pad.right - 96} y={height - 12}>{dates[dates.length - 1]}</text>
+        </svg>
+      </div>
+    </div>
   );
 }
 
@@ -514,7 +533,7 @@ function SignalList({ rows }: { rows: Observation[] }) {
           const signal = signalFor(row);
           const Icon = signal.icon;
           return (
-            <article className="signal" key={`${row.suburb}-${row.indicatorCode}`}>
+            <article className="signal" key={`${row.state}-${row.city}-${row.suburb}-${row.indicatorCode}`}>
               <div>
                 <strong>{row.suburb || row.city} · {row.indicatorName}</strong>
                 <span>{row.periodEnd} · {frequencyLabel(row.frequency)} · {row.sourceName} · <em className={`leadlag-inline ${leadLagClass(row.leadLag)}`}>{leadLagLabel(row.leadLag)}</em></span>
