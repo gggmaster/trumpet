@@ -85,6 +85,12 @@ option.option-muted { color: #7e918e; }
 .axis { stroke: #9dafac; }
 .chart-line { fill: none; stroke-width: 3; }
 .chart-label { fill: var(--muted); font-size: 12px; }
+.chart-point { cursor: crosshair; outline: none; }
+.chart-hover-line { stroke: #27423f; stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .75; }
+.chart-tooltip-box { fill: #10201f; stroke: rgba(255,255,255,.18); }
+.chart-tooltip-title { fill: white; font-size: 12px; font-weight: 800; }
+.chart-tooltip-text { fill: #b6c9c6; font-size: 11px; }
+.chart-tooltip-value { fill: #7be0d5; font-size: 13px; font-weight: 800; }
 .empty-panel { min-height: 240px; display: grid; place-items: center; color: var(--muted); }
 .grid-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, .9fr); gap: 16px; }
 .signal-list { display: grid; gap: 8px; }

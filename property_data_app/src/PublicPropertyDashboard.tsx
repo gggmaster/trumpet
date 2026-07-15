@@ -485,6 +485,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
 
 function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLabel?: string }) {
   const [zoom, setZoom] = useState(1);
+  const [hoveredPoint, setHoveredPoint] = useState<{ row: Observation; name: string; x: number; y: number; color: string } | null>(null);
   const chartRows = aggregateRows(rows, aggregateLabel).sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
   const width = Math.round(900 * zoom);
   const height = Math.round(340 * zoom);
@@ -521,11 +522,50 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
             return (
               <g key={name}>
                 <polyline className="chart-line" style={{ stroke: colors[index] }} points={points} />
-                {group.map((row) => <circle key={`${name}-${row.state}-${row.city}-${row.suburb}-${row.indicatorCode}-${row.periodEnd}`} cx={x(row.periodEnd)} cy={y(row.value ?? 0)} r="4" style={{ fill: colors[index] }} />)}
+                {group.map((row) => {
+                  const cx = x(row.periodEnd);
+                  const cy = y(row.value ?? 0);
+                  const color = colors[index];
+                  return (
+                    <circle
+                      key={`${name}-${row.state}-${row.city}-${row.suburb}-${row.indicatorCode}-${row.periodEnd}`}
+                      className="chart-point"
+                      cx={cx}
+                      cy={cy}
+                      r={hoveredPoint?.row === row ? 6 : 4}
+                      tabIndex={0}
+                      style={{ fill: color }}
+                      onMouseEnter={() => setHoveredPoint({ row, name, x: cx, y: cy, color })}
+                      onFocus={() => setHoveredPoint({ row, name, x: cx, y: cy, color })}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                      onBlur={() => setHoveredPoint(null)}
+                    />
+                  );
+                })}
                 <text className="chart-label" x={Math.min(x(last.periodEnd) + 8, width - 210)} y={y(last.value ?? 0) - 7}>{name}</text>
               </g>
             );
           })}
+          {hoveredPoint ? (
+            <g className="chart-tooltip-layer" pointerEvents="none">
+              <line className="chart-hover-line" x1={hoveredPoint.x} x2={hoveredPoint.x} y1={pad.top} y2={height - pad.bottom} />
+              <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="7" fill="none" stroke={hoveredPoint.color} strokeWidth="2" />
+              {(() => {
+                const tooltipWidth = 210;
+                const tooltipHeight = 66;
+                const tooltipX = Math.min(Math.max(hoveredPoint.x + 12, pad.left), width - tooltipWidth - pad.right);
+                const tooltipY = Math.max(hoveredPoint.y - tooltipHeight - 12, pad.top);
+                return (
+                  <g transform={`translate(${tooltipX}, ${tooltipY})`}>
+                    <rect className="chart-tooltip-box" width={tooltipWidth} height={tooltipHeight} rx="6" />
+                    <text className="chart-tooltip-title" x="10" y="20">{hoveredPoint.name}</text>
+                    <text className="chart-tooltip-text" x="10" y="40">{hoveredPoint.row.periodEnd}</text>
+                    <text className="chart-tooltip-value" x="10" y="58">{formatObservation(hoveredPoint.row)}</text>
+                  </g>
+                );
+              })()}
+            </g>
+          ) : null}
           <text className="chart-label" x={pad.left} y={height - 12}>{dates[0]}</text>
           <text className="chart-label" x={width - pad.right - 96} y={height - 12}>{dates[dates.length - 1]}</text>
         </svg>
