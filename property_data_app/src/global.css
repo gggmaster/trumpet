@@ -52,6 +52,7 @@ svg { width: 18px; height: 18px; }
 .location-group strong { color: white; font-size: 12px; }
 .location-group span { color: #8fa5a1; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 select { width: 100%; min-height: 40px; border: 1px solid #37504d; border-radius: 6px; padding: 8px; background: var(--deep-2); color: white; }
+option.option-muted { color: #7e918e; }
 .filter-note { display: flex; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #37504d; color: #b6c9c6; font-size: 12px; line-height: 1.45; }
 .workspace { min-width: 0; }
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }

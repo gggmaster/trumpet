@@ -36,6 +36,7 @@ type Indicator = {
   higherIs: string;
   frequency?: string;
   notes: string;
+  hasData?: boolean;
 };
 
 type Geography = {
@@ -139,6 +140,10 @@ function rowMatchesLocation(row: Observation, selectedLocation: string) {
   if (location.type === "national") return row.state === location.state && row.city === location.name && !row.suburb;
   if (location.type === "capital_city") return row.state === location.state && row.city === location.name && !row.suburb;
   return row.state === location.state && row.suburb === location.name;
+}
+
+function rowMatchesAustraliaBenchmark(row: Observation, indicatorCode: string) {
+  return row.state === "AUS" && row.city === "Australia" && !row.suburb && row.indicatorCode === indicatorCode;
 }
 
 function weekBucket(dateText: string) {
@@ -281,7 +286,7 @@ export function PublicPropertyDashboard() {
     () => payload?.indicators.find((indicator) => indicator.code === selectedIndicator),
     [payload?.indicators, selectedIndicator],
   );
-  const selectedFrequency = selectedIndicator === "all" ? undefined : selectedIndicatorMeta?.frequency;
+  const selectedFrequency = selectedIndicatorMeta?.frequency;
 
   const lensFilter = (row: Observation) => {
     if (selectedLens === "house") return row.indicatorCode.includes("_house") || row.indicatorCode.includes("listings");
@@ -296,7 +301,7 @@ export function PublicPropertyDashboard() {
       observations.filter(
         (row) =>
           rowMatchesLocation(row, selectedLocation) &&
-          (!selectedIndicator || selectedIndicator === "all" || row.indicatorCode === selectedIndicator) &&
+          row.indicatorCode === selectedIndicator &&
           lensFilter(row),
       ),
     [observations, selectedLocation, selectedIndicator, selectedLens],
@@ -308,31 +313,50 @@ export function PublicPropertyDashboard() {
           row.state === "AUS" &&
           row.city === "Australia" &&
           !row.suburb &&
-          selectedIndicator !== "all" &&
-          row.indicatorCode === selectedIndicator &&
+          rowMatchesAustraliaBenchmark(row, selectedIndicator) &&
           lensFilter(row),
       ),
     [observations, selectedIndicator, selectedLens],
   );
-  const usesAustraliaBenchmark = Boolean(selectedLocation && selectedIndicator !== "all" && !selectedLocalObservations.length && selectedBenchmarkObservations.length);
+  const usesAustraliaBenchmark = Boolean(selectedLocation && !selectedLocalObservations.length && selectedBenchmarkObservations.length);
   const selectedObservations = usesAustraliaBenchmark ? selectedBenchmarkObservations : selectedLocalObservations;
   const trendLocationLabel = usesAustraliaBenchmark ? `${selectedLocationLabel} · Australia benchmark` : selectedLocationLabel;
 
   const latestVisible = useMemo(
+    () => latestBySuburbIndicator(selectedObservations),
+    [selectedObservations],
+  );
+
+  const latestForTotals = useMemo(
     () => latest.filter((row) => rowMatchesLocation(row, selectedLocation) && lensFilter(row)),
     [latest, selectedLocation, selectedLens],
   );
 
+  const availableIndicators = useMemo(() => {
+    const available = new Set<string>();
+    for (const indicator of payload?.indicators ?? []) {
+      const hasLocalData = observations.some((row) => row.indicatorCode === indicator.code && rowMatchesLocation(row, selectedLocation) && lensFilter(row));
+      const hasBenchmarkData = Boolean(selectedLocation) && observations.some((row) => rowMatchesAustraliaBenchmark(row, indicator.code) && lensFilter(row));
+      if (hasLocalData || hasBenchmarkData) available.add(indicator.code);
+    }
+    return available;
+  }, [payload?.indicators, observations, selectedLocation, selectedLens]);
+
+  const indicatorsWithAvailability = useMemo(
+    () => (payload?.indicators ?? []).map((indicator) => ({ ...indicator, hasData: availableIndicators.has(indicator.code) })),
+    [payload?.indicators, availableIndicators],
+  );
+
   const totals = useMemo(
     () => ({
-      saleListings: latestVisible
+      saleListings: latestForTotals
         .filter((row) => row.indicatorCode === "suburb_sale_listings")
         .reduce((sum, row) => sum + (row.value ?? 0), 0),
-      rentalListings: latestVisible
+      rentalListings: latestForTotals
         .filter((row) => row.indicatorCode === "suburb_rental_listings")
         .reduce((sum, row) => sum + (row.value ?? 0), 0),
     }),
-    [latestVisible],
+    [latestForTotals],
   );
 
   if (error) {
@@ -384,7 +408,7 @@ export function PublicPropertyDashboard() {
           suburbSearch={suburbSearch}
           selectedLens={selectedLens}
           selectedIndicator={selectedIndicator}
-          indicators={payload?.indicators ?? []}
+          indicators={indicatorsWithAvailability}
           onClose={() => setFiltersOpen(false)}
           onSearch={setSuburbSearch}
           onLocation={setSelectedLocation}
@@ -405,9 +429,9 @@ export function PublicPropertyDashboard() {
               <div>
                 <h2>Indicator Trend</h2>
                 <p>
-                  {trendLocationLabel} · {selectedIndicator === "all" ? "All indicators" : selectedIndicatorMeta?.name ?? selectedIndicator}
-                  {selectedIndicator !== "all" ? <span className={`leadlag-chip ${leadLagClass(selectedIndicatorMeta?.leadLag)}`}>{leadLagLabel(selectedIndicatorMeta?.leadLag)}</span> : null}
-                  {selectedIndicator !== "all" ? <span className="frequency-chip">{frequencyLabel(selectedFrequency)} trend</span> : null}
+                  {trendLocationLabel} · {selectedIndicatorMeta?.name ?? selectedIndicator}
+                  <span className={`leadlag-chip ${leadLagClass(selectedIndicatorMeta?.leadLag)}`}>{leadLagLabel(selectedIndicatorMeta?.leadLag)}</span>
+                  <span className="frequency-chip">{frequencyLabel(selectedFrequency)} trend</span>
                 </p>
               </div>
             </div>
@@ -656,20 +680,23 @@ function FilterPane({
       </div>
       <label>Indicator</label>
       <select value={selectedIndicator} onChange={(event) => onIndicator(event.target.value)}>
-        <option value="all">All indicators</option>
         {["leading", "confirming", "lagging", "other"].map((group) => {
           const groupedIndicators = indicators.filter((indicator) => (indicator.leadLag ?? "other") === group);
           if (!groupedIndicators.length) return null;
           return (
             <optgroup key={group} label={leadLagLabel(group)}>
-              {groupedIndicators.map((indicator) => <option key={indicator.code} value={indicator.code}>{indicator.name}</option>)}
+              {groupedIndicators.map((indicator) => (
+                <option key={indicator.code} value={indicator.code} className={indicator.hasData ? "" : "option-muted"}>
+                  {indicator.name}{indicator.hasData ? "" : " (no data)"}
+                </option>
+              ))}
             </optgroup>
           );
         })}
       </select>
       <label>Lens</label>
       <select value={selectedLens} onChange={(event) => onLens(event.target.value)}>
-        <option value="all">All indicators</option>
+        <option value="all">All lenses</option>
         <option value="house">House</option>
         <option value="unit">Unit / townhouse</option>
         <option value="rental">Rental pressure</option>
