@@ -44,16 +44,16 @@ const sourceRegister = [
     notes: "Monthly national housing credit balances. Macro context rather than suburb-level signal.",
   },
   {
-    sourceId: "domain_or_proptrack_auctions",
-    sourceName: "Domain or PropTrack Auction Results",
+    sourceId: "domain_auction_results",
+    sourceName: "Domain Auction Results",
     class: "B",
-    status: "optional_needs_approval",
-    access: "developer_api_or_limited_public_page",
+    status: "enabled_free_public_page",
+    access: "public_html",
     frequency: "weekly",
     geography: "Capital city",
     indicators: ["auction_volume", "auction_clearance_rate", "auction_withdrawn_rate"],
     sourceUrl: "https://www.domain.com.au/auction-results/",
-    notes: "Strong leading indicators. Prefer an official API/API key before automated historical collection.",
+    notes: "Free public weekly capital-city auction table parsed from Domain's auction results page.",
   },
   {
     sourceId: "sqm_vacancy_rents",
@@ -82,6 +82,36 @@ const sourceRegister = [
 ];
 
 const officialIndicators = [
+  {
+    code: "auction_clearance_rate",
+    name: "Auction clearance rate",
+    category: "demand",
+    leadLag: "leading",
+    unit: "percent",
+    higherIs: "bullish",
+    frequency: "weekly",
+    notes: "Weekly capital-city clearance rate from Domain public auction results.",
+  },
+  {
+    code: "auction_volume",
+    name: "Auction volume",
+    category: "activity",
+    leadLag: "leading",
+    unit: "count",
+    higherIs: "mixed",
+    frequency: "weekly",
+    notes: "Weekly capital-city auctions scheduled from Domain public auction results.",
+  },
+  {
+    code: "auction_withdrawn_rate",
+    name: "Auction withdrawn rate",
+    category: "stress",
+    leadLag: "leading",
+    unit: "percent",
+    higherIs: "bearish",
+    frequency: "weekly",
+    notes: "Weekly capital-city withdrawn auctions divided by auctions reported from Domain public auction results.",
+  },
   {
     code: "housing_credit_owner_occupier",
     name: "Owner-occupier housing credit",
@@ -129,6 +159,26 @@ function excelDateToMonthEnd(value) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 0)).toISOString().slice(0, 10);
+}
+
+function stripHtml(value) {
+  return decodeHtml(value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim());
+}
+
+function parseDomainAuctionDate(html) {
+  const inputMatch = html.match(/value="(\d{4}-\d{2}-\d{2})T00:00:00"/);
+  if (inputMatch) return inputMatch[1];
+  const weekMatch = html.match(/week ending[^<]*?(\d{1,2}\s+[A-Za-z]+\s+\d{4})/i);
+  if (weekMatch) {
+    const parsed = new Date(weekMatch[1]);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  }
+  return new Date().toISOString().slice(0, 10);
+}
+
+function parseDomainAuctionCell(rowHtml, label) {
+  const match = rowHtml.match(new RegExp(`<td[^>]*data-label="${label}"[^>]*>([\\s\\S]*?)<\\/td>`, "i"));
+  return match ? numberOrNull(stripHtml(match[1]).replace("%", "").replace("View details", "")) : null;
 }
 
 function parseChartData(html, captionText) {
@@ -362,6 +412,88 @@ async function fetchRbaCredit() {
   return rows.filter((row) => row.value != null);
 }
 
+async function fetchDomainAuctionResults() {
+  const sourceUrl = "https://www.domain.com.au/auction-results/";
+  const html = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0" } }).then((response) => {
+    if (!response.ok) throw new Error(`Domain auction results failed: ${response.status}`);
+    return response.text();
+  });
+  const periodEnd = parseDomainAuctionDate(html);
+  const stateByCity = {
+    Sydney: "NSW",
+    Melbourne: "VIC",
+    Brisbane: "QLD",
+    Canberra: "ACT",
+    Adelaide: "SA",
+    Perth: "WA",
+    Hobart: "TAS",
+    Darwin: "NT",
+  };
+  const rows = [];
+  const rowMatches = html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+  for (const match of rowMatches) {
+    const rowHtml = match[1];
+    const cityMatch = rowHtml.match(/\/auction-results\/([a-z-]+)\/">([^<]+)<\/a>/i);
+    if (!cityMatch) continue;
+    const city = stripHtml(cityMatch[2]);
+    const state = stateByCity[city];
+    if (!state) continue;
+    const clearanceRate = parseDomainAuctionCell(rowHtml, "Clearance rate");
+    const auctionsScheduled = parseDomainAuctionCell(rowHtml, "Auctions scheduled");
+    const auctionsReported = parseDomainAuctionCell(rowHtml, "Auctions reported");
+    const withdrawn = parseDomainAuctionCell(rowHtml, "Withdrawn");
+    const withdrawnRate = auctionsReported ? (withdrawn ?? 0) / auctionsReported * 100 : null;
+    rows.push(
+      buildObservation({
+        state,
+        city,
+        indicatorCode: "auction_clearance_rate",
+        indicatorName: "Auction clearance rate",
+        category: "demand",
+        leadLag: "leading",
+        unit: "percent",
+        higherIs: "bullish",
+        sourceName: "Domain Auction Results",
+        periodEnd,
+        value: clearanceRate,
+        frequency: "weekly",
+        sourceUrl,
+      }),
+      buildObservation({
+        state,
+        city,
+        indicatorCode: "auction_volume",
+        indicatorName: "Auction volume",
+        category: "activity",
+        leadLag: "leading",
+        unit: "count",
+        higherIs: "mixed",
+        sourceName: "Domain Auction Results",
+        periodEnd,
+        value: auctionsScheduled,
+        frequency: "weekly",
+        sourceUrl,
+      }),
+      buildObservation({
+        state,
+        city,
+        indicatorCode: "auction_withdrawn_rate",
+        indicatorName: "Auction withdrawn rate",
+        category: "stress",
+        leadLag: "leading",
+        unit: "percent",
+        higherIs: "bearish",
+        sourceName: "Domain Auction Results",
+        periodEnd,
+        value: withdrawnRate,
+        frequency: "weekly",
+        sourceUrl,
+      }),
+    );
+  }
+  return rows.filter((row) => row.value != null);
+}
+
 function mergeByKey(existing, incoming) {
   const map = new Map();
   for (const row of existing) {
@@ -378,6 +510,7 @@ const officialRows = [
   ...(await fetchAbsBuildingApprovals()),
   ...(await fetchAbsLendingIndicators()),
   ...(await fetchRbaCredit()),
+  ...(await fetchDomainAuctionResults()),
 ];
 
 const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
