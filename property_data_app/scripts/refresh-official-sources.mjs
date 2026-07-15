@@ -506,11 +506,19 @@ function mergeByKey(existing, incoming) {
 }
 
 const payload = JSON.parse((await readFile(publicPath, "utf8")).replace(/^\uFEFF/, ""));
+let domainRows = [];
+let domainRefreshMessage = "Domain auction results refreshed";
+try {
+  domainRows = await fetchDomainAuctionResults();
+} catch (error) {
+  domainRefreshMessage = `Domain auction refresh skipped; retained previous observations (${error instanceof Error ? error.message : String(error)})`;
+  console.warn(domainRefreshMessage);
+}
 const officialRows = [
   ...(await fetchAbsBuildingApprovals()),
   ...(await fetchAbsLendingIndicators()),
   ...(await fetchRbaCredit()),
-  ...(await fetchDomainAuctionResults()),
+  ...domainRows,
 ];
 
 const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
@@ -553,7 +561,7 @@ await writeFile(
           finishedAt: new Date().toISOString(),
           status: "success",
           rowsInserted: officialRows.length,
-          message: "Refreshed A-class official ABS/RBA backfill",
+          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}`,
         },
       ],
     },
