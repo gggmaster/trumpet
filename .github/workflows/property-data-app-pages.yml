@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: property-data-app-pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -34,9 +34,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Build public data
-        run: npm run build:public-data
 
       - name: Build app
         env:
