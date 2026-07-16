@@ -85,6 +85,57 @@ function formatObservation(row: Observation) {
   return number(row.value);
 }
 
+function niceStep(range: number, targetTickCount = 5) {
+  const roughStep = range / Math.max(targetTickCount - 1, 1);
+  const magnitude = 10 ** Math.floor(Math.log10(Math.max(roughStep, Number.EPSILON)));
+  const normalized = roughStep / magnitude;
+  const niceNormalized = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 2.5 ? 2.5 : normalized <= 5 ? 5 : 10;
+  return niceNormalized * magnitude;
+}
+
+function yAxisScale(values: number[], unit: string) {
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  const rawRange = rawMax - rawMin;
+  const minimumFallback = unit === "aud" || unit === "aud_per_week" ? 100 : unit === "aud_billion" ? 0.1 : 1;
+  const fallbackRange = Math.max(Math.abs(rawMax) * 0.2, minimumFallback);
+  const paddedMin = rawMin - (rawRange || fallbackRange) * 0.08;
+  const paddedMax = rawMax + (rawRange || fallbackRange) * 0.08;
+  const step = unit === "count" ? Math.max(1, niceStep(paddedMax - paddedMin)) : niceStep(paddedMax - paddedMin);
+  let min = Math.floor(paddedMin / step) * step;
+  let max = Math.ceil(paddedMax / step) * step;
+
+  if (min === max) {
+    min -= step;
+    max += step;
+  }
+
+  const ticks: number[] = [];
+  for (let tick = min; tick <= max + step / 2; tick += step) {
+    ticks.push(Number(tick.toPrecision(12)));
+  }
+
+  return { min, max, step, ticks };
+}
+
+function formatAxisValue(value: number, unit: string, step: number) {
+  const maximumFractionDigits = step >= 1 ? 0 : Math.min(3, Math.max(1, Math.ceil(-Math.log10(step))));
+  if (unit === "percent") return `${new Intl.NumberFormat("en-AU", { maximumFractionDigits }).format(value)}%`;
+  if (unit === "aud_billion") return `$${new Intl.NumberFormat("en-AU", { maximumFractionDigits }).format(value)}b`;
+  if (unit === "aud" || unit === "aud_per_week") {
+    return new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: "AUD",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+  return new Intl.NumberFormat("en-AU", {
+    notation: Math.abs(value) >= 10_000 ? "compact" : "standard",
+    maximumFractionDigits,
+  }).format(value);
+}
+
 function latestBySuburbIndicator(rows: Observation[]) {
   const map = new Map<string, Observation>();
   for (const row of rows) {
@@ -490,16 +541,17 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
   const chartRows = aggregateRows(rows, aggregateLabel).sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
   const width = Math.round(900 * zoom);
   const height = Math.round(340 * zoom);
-  const pad = { top: 26, right: 28, bottom: 42, left: 66 };
   if (!chartRows.length) return <div className="empty-panel">No observations for this filter.</div>;
 
   const dates = [...new Set(chartRows.map((row) => row.periodEnd))].sort();
   const values = chartRows.map((row) => row.value ?? 0);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
+  const unit = chartRows.find((row) => row.value != null)?.unit ?? "number";
+  const scale = yAxisScale(values, unit);
+  const widestTickLabel = Math.max(...scale.ticks.map((tick) => formatAxisValue(tick, unit, scale.step).length));
+  const pad = { top: 26, right: 28, bottom: 42, left: Math.max(66, Math.min(108, 30 + widestTickLabel * 7)) };
+  const span = scale.max - scale.min;
   const x = (date: string) => pad.left + (dates.indexOf(date) / Math.max(dates.length - 1, 1)) * (width - pad.left - pad.right);
-  const y = (value: number) => height - pad.bottom - ((value - min) / span) * (height - pad.top - pad.bottom);
+  const y = (value: number) => height - pad.bottom - ((value - scale.min) / span) * (height - pad.top - pad.bottom);
   const groups = new Map<string, Observation[]>();
   for (const row of chartRows) {
     const key = aggregateLabel ?? (rows.some((item) => item.suburb !== chartRows[0].suburb) ? row.suburb : row.indicatorName);
@@ -539,9 +591,16 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
       ) : null}
       <div className="chart-scroll" role="region" aria-label="Scrollable trend chart">
         <svg width={width} height={height} className="chart" role="img">
-          {[0, 1, 2, 3].map((line) => {
-            const yy = pad.top + line * ((height - pad.top - pad.bottom) / 3);
-            return <line key={line} className="grid-line" x1={pad.left} x2={width - pad.right} y1={yy} y2={yy} />;
+          {scale.ticks.map((tick) => {
+            const yy = y(tick);
+            return (
+              <g key={tick}>
+                <line className="grid-line" x1={pad.left} x2={width - pad.right} y1={yy} y2={yy} />
+                <text className="chart-axis-label" x={pad.left - 10} y={yy}>
+                  {formatAxisValue(tick, unit, scale.step)}
+                </text>
+              </g>
+            );
           })}
           <line className="axis" x1={pad.left} x2={width - pad.right} y1={height - pad.bottom} y2={height - pad.bottom} />
           <line className="axis" x1={pad.left} x2={pad.left} y1={pad.top} y2={height - pad.bottom} />
