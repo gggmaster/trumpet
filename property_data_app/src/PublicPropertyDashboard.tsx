@@ -503,6 +503,7 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
   }
   const colors = ["#0d9488", "#c47a22", "#4f67b1", "#6f8e3d", "#a74d47", "#617986"];
   const comparisonPoints = new Map<string, string>();
+  const comparisonRows = new Map<string, Observation>();
   if (groups.size === 1) {
     for (const [name, group] of groups) {
       const latestDate = new Date(`${group[group.length - 1].periodEnd}T00:00:00Z`);
@@ -516,7 +517,9 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
           .map((candidate) => ({ candidate, distance: Math.abs(new Date(`${candidate.periodEnd}T00:00:00Z`).getTime() - target.getTime()) }))
           .filter(({ distance }) => distance <= 12 * 24 * 60 * 60 * 1000)
           .sort((a, b) => a.distance - b.distance)[0]?.candidate;
-        return prior?.value == null ? [] : [`${x(current.periodEnd)},${y(prior.value)}`];
+        if (prior?.value == null) return [];
+        comparisonRows.set(`${name}|${current.periodEnd}`, prior);
+        return [`${x(current.periodEnd)},${y(prior.value)}`];
       });
       if (aligned.length > 1) comparisonPoints.set(name, aligned.join(" "));
     }
@@ -574,16 +577,24 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
               <line className="chart-hover-line" x1={hoveredPoint.x} x2={hoveredPoint.x} y1={pad.top} y2={height - pad.bottom} />
               <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="7" fill="none" stroke={hoveredPoint.color} strokeWidth="2" />
               {(() => {
-                const tooltipWidth = 210;
-                const tooltipHeight = 66;
+                const previousYearRow = comparisonRows.get(`${hoveredPoint.name}|${hoveredPoint.row.periodEnd}`);
+                const tooltipWidth = 238;
+                const tooltipHeight = previousYearRow ? 108 : 70;
                 const tooltipX = Math.min(Math.max(hoveredPoint.x + 12, pad.left), width - tooltipWidth - pad.right);
                 const tooltipY = Math.max(hoveredPoint.y - tooltipHeight - 12, pad.top);
                 return (
                   <g transform={`translate(${tooltipX}, ${tooltipY})`}>
                     <rect className="chart-tooltip-box" width={tooltipWidth} height={tooltipHeight} rx="6" />
                     <text className="chart-tooltip-title" x="10" y="20">{hoveredPoint.name}</text>
-                    <text className="chart-tooltip-text" x="10" y="40">{hoveredPoint.row.periodEnd}</text>
-                    <text className="chart-tooltip-value" x="10" y="58">{formatObservation(hoveredPoint.row)}</text>
+                    <text className="chart-tooltip-text" x="10" y="40">Current · {hoveredPoint.row.periodEnd}</text>
+                    <text className="chart-tooltip-value" x="10" y="59">{formatObservation(hoveredPoint.row)}</text>
+                    {previousYearRow ? (
+                      <>
+                        <line className="chart-tooltip-divider" x1="10" x2={tooltipWidth - 10} y1="70" y2="70" />
+                        <text className="chart-tooltip-text" x="10" y="87">Previous year · {previousYearRow.periodEnd}</text>
+                        <text className="chart-tooltip-previous-value" x="10" y="103">{formatObservation(previousYearRow)}</text>
+                      </>
+                    ) : null}
                   </g>
                 );
               })()}
