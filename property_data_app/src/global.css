@@ -99,9 +99,13 @@ option.option-muted { color: #7e918e; }
 .leadlag-chip.other { background: #eef3f2; }
 .frequency-chip { display: inline-flex; margin-left: 8px; border-radius: 4px; padding: 2px 6px; background: #eef3f2; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
 .chart-shell { display: grid; gap: 10px; }
+.chart-compare-header { display: flex; align-items: center; justify-content: flex-end; gap: 18px; flex-wrap: wrap; }
 .chart-compare-legend { display: flex; justify-content: flex-end; gap: 16px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .chart-compare-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .chart-compare-legend i { width: 22px; height: 3px; border-radius: 999px; }
+.chart-compare-toggle { display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 12px; font-weight: 800; cursor: pointer; }
+.chart-compare-toggle input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.chart-compare-toggle input:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent); outline-offset: 2px; }
 .legend-current { background: #0d9488; }
 .legend-previous { background: #cbd5d3; }
 .chart-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr) 48px; align-items: center; gap: 10px; width: 100%; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }

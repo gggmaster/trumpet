@@ -254,9 +254,9 @@ export function PublicPropertyDashboard() {
   const [error, setError] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [suburbSearch, setSuburbSearch] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("combined_capitals|AUS|Combined capital cities");
   const [selectedLens, setSelectedLens] = useState("all");
-  const [selectedIndicator, setSelectedIndicator] = useState("suburb_sale_listings");
+  const [selectedIndicator, setSelectedIndicator] = useState("auction_clearance_rate");
   const [account, setAccount] = useState<AccountInfo | null>(null);
 
   useEffect(() => {
@@ -597,6 +597,7 @@ function Kpi({ label, value }: { label: string; value: string }) {
 
 function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLabel?: string }) {
   const [zoom, setZoom] = useState(1);
+  const [showPreviousYear, setShowPreviousYear] = useState(true);
   const [hoveredPoint, setHoveredPoint] = useState<{ row: Observation; name: string; x: number; y: number; color: string } | null>(null);
   const chartRows = aggregateRows(rows, aggregateLabel).sort((a, b) => a.periodEnd.localeCompare(b.periodEnd));
   const width = Math.round(900 * zoom);
@@ -644,9 +645,19 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
   return (
     <div className="chart-shell">
       {comparisonPoints.size ? (
-        <div className="chart-compare-legend" aria-label="Trend comparison legend">
-          <span><i className="legend-current" />Trend</span>
-          <span><i className="legend-previous" />Previous year aligned</span>
+        <div className="chart-compare-header">
+          <div className="chart-compare-legend" aria-label="Trend comparison legend">
+            <span><i className="legend-current" />Trend</span>
+            {showPreviousYear ? <span><i className="legend-previous" />Previous year aligned</span> : null}
+          </div>
+          <label className="chart-compare-toggle">
+            <input
+              type="checkbox"
+              checked={showPreviousYear}
+              onChange={(event) => setShowPreviousYear(event.currentTarget.checked)}
+            />
+            <span>Show previous year</span>
+          </label>
         </div>
       ) : null}
       <div className="chart-scroll" role="region" aria-label="Scrollable trend chart">
@@ -669,7 +680,7 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
             const last = group[group.length - 1];
             return (
               <g key={name}>
-                {comparisonPoints.has(name) ? <polyline className="chart-line chart-line-previous" points={comparisonPoints.get(name)} /> : null}
+                {showPreviousYear && comparisonPoints.has(name) ? <polyline className="chart-line chart-line-previous" points={comparisonPoints.get(name)} /> : null}
                 <polyline className="chart-line" style={{ stroke: colors[index] }} points={points} />
                 {group.map((row) => {
                   const cx = x(row.periodEnd);
@@ -700,7 +711,7 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
               <line className="chart-hover-line" x1={hoveredPoint.x} x2={hoveredPoint.x} y1={pad.top} y2={height - pad.bottom} />
               <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="7" fill="none" stroke={hoveredPoint.color} strokeWidth="2" />
               {(() => {
-                const previousYearRow = comparisonRows.get(`${hoveredPoint.name}|${hoveredPoint.row.periodEnd}`);
+                const previousYearRow = showPreviousYear ? comparisonRows.get(`${hoveredPoint.name}|${hoveredPoint.row.periodEnd}`) : undefined;
                 const currentValue = hoveredPoint.row.value;
                 const previousValue = previousYearRow?.value;
                 const percentageChange =
