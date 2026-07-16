@@ -482,16 +482,6 @@ export function PublicPropertyDashboard() {
                 </button>
               )
             ) : null}
-            <button
-              type="button"
-              onClick={() => setFiltersOpen((current) => !current)}
-              className="secondary-action responsive-filter-action"
-              aria-controls="property-filters"
-              aria-expanded={filtersOpen}
-            >
-              <SlidersHorizontal />
-              {filtersOpen ? "Close filters" : "Filters"}
-            </button>
           </div>
         </div>
         <div className="hero-panel">
@@ -711,21 +701,43 @@ function TrendChart({ rows, aggregateLabel }: { rows: Observation[]; aggregateLa
               <circle cx={hoveredPoint.x} cy={hoveredPoint.y} r="7" fill="none" stroke={hoveredPoint.color} strokeWidth="2" />
               {(() => {
                 const previousYearRow = comparisonRows.get(`${hoveredPoint.name}|${hoveredPoint.row.periodEnd}`);
-                const tooltipWidth = 238;
-                const tooltipHeight = previousYearRow ? 108 : 70;
+                const currentValue = hoveredPoint.row.value;
+                const previousValue = previousYearRow?.value;
+                const percentageChange =
+                  currentValue != null && previousValue != null && previousValue !== 0
+                    ? ((currentValue - previousValue) / Math.abs(previousValue)) * 100
+                    : null;
+                const percentageChangeLabel =
+                  percentageChange == null
+                    ? null
+                    : new Intl.NumberFormat("en-AU", {
+                        style: "percent",
+                        signDisplay: "always",
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      }).format(percentageChange / 100);
+                const tooltipWidth = previousYearRow ? 360 : 260;
+                const tooltipHeight = previousYearRow ? 76 : 50;
                 const tooltipX = Math.min(Math.max(hoveredPoint.x + 12, pad.left), width - tooltipWidth - pad.right);
                 const tooltipY = Math.max(hoveredPoint.y - tooltipHeight - 12, pad.top);
                 return (
                   <g transform={`translate(${tooltipX}, ${tooltipY})`}>
                     <rect className="chart-tooltip-box" width={tooltipWidth} height={tooltipHeight} rx="6" />
                     <text className="chart-tooltip-title" x="10" y="20">{hoveredPoint.name}</text>
-                    <text className="chart-tooltip-text" x="10" y="40">Current · {hoveredPoint.row.periodEnd}</text>
-                    <text className="chart-tooltip-value" x="10" y="59">{formatObservation(hoveredPoint.row)}</text>
+                    <text className="chart-tooltip-text" x="10" y="42">
+                      Current · {hoveredPoint.row.periodEnd} · <tspan className="chart-tooltip-inline-value">{formatObservation(hoveredPoint.row)}</tspan>
+                      {percentageChangeLabel ? (
+                        <tspan className={`chart-tooltip-change ${(percentageChange ?? 0) >= 0 ? "positive" : "negative"}`}>
+                          {` · ${percentageChangeLabel} vs prior year`}
+                        </tspan>
+                      ) : null}
+                    </text>
                     {previousYearRow ? (
                       <>
-                        <line className="chart-tooltip-divider" x1="10" x2={tooltipWidth - 10} y1="70" y2="70" />
-                        <text className="chart-tooltip-text" x="10" y="87">Previous year · {previousYearRow.periodEnd}</text>
-                        <text className="chart-tooltip-previous-value" x="10" y="103">{formatObservation(previousYearRow)}</text>
+                        <line className="chart-tooltip-divider" x1="10" x2={tooltipWidth - 10} y1="51" y2="51" />
+                        <text className="chart-tooltip-text" x="10" y="68">
+                          Previous year · {previousYearRow.periodEnd} · <tspan className="chart-tooltip-previous-value">{formatObservation(previousYearRow)}</tspan>
+                        </text>
                       </>
                     ) : null}
                   </g>
