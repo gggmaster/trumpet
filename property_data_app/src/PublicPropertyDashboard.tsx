@@ -124,7 +124,9 @@ function leadLagClass(value: string | undefined) {
 }
 
 function locationKey(geography: Pick<Geography, "geographyType" | "state" | "city" | "suburb">) {
-  if (geography.geographyType === "national") return `national|${geography.state}|${geography.city}`;
+  if (geography.geographyType === "national" || geography.geographyType === "combined_capitals") {
+    return `${geography.geographyType}|${geography.state}|${geography.city}`;
+  }
   const name = geography.geographyType === "capital_city" ? geography.city : geography.suburb;
   return `${geography.geographyType}|${geography.state}|${name}`;
 }
@@ -138,6 +140,7 @@ function rowMatchesLocation(row: Observation, selectedLocation: string) {
   if (!selectedLocation) return true;
   const location = parseLocationKey(selectedLocation);
   if (location.type === "national") return row.state === location.state && row.city === location.name && !row.suburb;
+  if (location.type === "combined_capitals") return row.state === location.state && row.city === location.name && !row.suburb;
   if (location.type === "capital_city") return row.state === location.state && row.city === location.name && !row.suburb;
   return row.state === location.state && row.suburb === location.name;
 }
@@ -250,23 +253,24 @@ export function PublicPropertyDashboard() {
   const locationOptions = useMemo<LocationOption[]>(() => {
     const directCapitalData = new Set(observations.filter((row) => !row.suburb && row.city).map((row) => `capital_city|${row.state}|${row.city}`));
     const nationalData = new Set(observations.filter((row) => row.state === "AUS" && !row.suburb).map((row) => `national|${row.state}|${row.city}`));
+    const combinedCapitalData = new Set(observations.filter((row) => row.state === "AUS" && row.city === "Combined capital cities" && !row.suburb).map((row) => `combined_capitals|${row.state}|${row.city}`));
     const suburbData = new Set(observations.filter((row) => row.suburb).map((row) => `suburb|${row.state}|${row.suburb}`));
     const geographies = payload?.geographies?.length
       ? payload.geographies
       : [...new Map(observations.map((row) => [`${row.state}|${row.suburb}`, { state: row.state, city: row.city, suburb: row.suburb, geographyType: "suburb" }])).values()];
     return geographies
-      .filter((geography) => geography.geographyType === "national" || geography.geographyType === "capital_city" || Boolean(geography.suburb))
+      .filter((geography) => geography.geographyType === "national" || geography.geographyType === "combined_capitals" || geography.geographyType === "capital_city" || Boolean(geography.suburb))
       .map((geography) => {
         const key = locationKey(geography);
         return {
           ...geography,
           key,
-          label: geography.geographyType === "capital_city" || geography.geographyType === "national" ? geography.city : geography.suburb,
-          hasData: geography.geographyType === "national" ? nationalData.has(key) : geography.geographyType === "capital_city" ? directCapitalData.has(key) : suburbData.has(key),
+          label: geography.geographyType === "national" ? `${geography.city} — national` : geography.geographyType === "capital_city" || geography.geographyType === "combined_capitals" ? geography.city : geography.suburb,
+          hasData: geography.geographyType === "national" ? nationalData.has(key) : geography.geographyType === "combined_capitals" ? combinedCapitalData.has(key) : geography.geographyType === "capital_city" ? directCapitalData.has(key) : suburbData.has(key),
         };
       })
       .sort((a, b) => {
-        const order = { national: 0, capital_city: 1, suburb: 2 } as Record<string, number>;
+        const order = { combined_capitals: 0, national: 1, capital_city: 2, suburb: 3 } as Record<string, number>;
         return (order[a.geographyType] ?? 3) - (order[b.geographyType] ?? 3) || a.state.localeCompare(b.state) || a.label.localeCompare(b.label);
       });
   }, [payload?.geographies, observations]);
@@ -724,13 +728,26 @@ function FilterPane({
         <button type="button" className={!selectedLocation ? "selected" : ""} onClick={() => onLocation("")}>All locations</button>
         {[...new Set(locations.map((location) => location.state))].map((state) => {
           const stateLocations = locations.filter((location) => location.state === state);
+          const combinedCapitalLocations = stateLocations.filter((location) => location.geographyType === "combined_capitals");
           const nationalLocations = stateLocations.filter((location) => location.geographyType === "national");
           const capitalCities = stateLocations.filter((location) => location.geographyType === "capital_city");
-          const suburbs = stateLocations.filter((location) => location.geographyType !== "capital_city" && location.geographyType !== "national");
+          const suburbs = stateLocations.filter((location) => location.geographyType !== "capital_city" && location.geographyType !== "national" && location.geographyType !== "combined_capitals");
           return (
             <div className="location-group" key={state}>
               <strong>{state}</strong>
-              {nationalLocations.length ? <span>National</span> : null}
+              {combinedCapitalLocations.length ? <span>Capital-city aggregate</span> : null}
+              {combinedCapitalLocations.map((location) => (
+                <button
+                  type="button"
+                  key={location.key}
+                  className={selectedLocation === location.key ? "selected" : ""}
+                  disabled={!location.hasData}
+                  onClick={() => onLocation(location.key)}
+                >
+                  {location.label}
+                </button>
+              ))}
+              {nationalLocations.length ? <span>National benchmark</span> : null}
               {nationalLocations.map((location) => (
                 <button
                   type="button"
