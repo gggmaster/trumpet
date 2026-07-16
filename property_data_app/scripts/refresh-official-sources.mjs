@@ -2,6 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as XLSX from "xlsx";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicPath = resolve(root, "public", "property-leading-indicators-public.json");
@@ -44,16 +45,16 @@ const sourceRegister = [
     notes: "Monthly national housing credit balances. Macro context rather than suburb-level signal.",
   },
   {
-    sourceId: "sqm_capital_city_auction_history",
-    sourceName: "SQM Research Auction Results",
+    sourceId: "cotality_capital_city_auction_results",
+    sourceName: "Cotality Auction Results",
     class: "B",
-    status: "enabled_free_public_page",
-    access: "public_html_personal_reference",
+    status: "enabled_public_reports_partial_history",
+    access: "public_pdf_reports",
     frequency: "weekly",
-    geography: "Capital city",
+    geography: "Combined capital cities and individual capital cities",
     indicators: ["auction_volume", "auction_clearance_rate"],
-    sourceUrl: "https://sqmresearch.com.au/property/auction-results",
-    notes: "Two-year weekly capital-city auction volume and clearance history from SQM Research public state auction pages.",
+    sourceUrl: "https://www.cotality.com/au/press-releases",
+    notes: "Final weekly Cotality auction results, including the published weighted combined-capitals rate. Public report history is partial and missing weeks remain blank.",
   },
   {
     sourceId: "domain_auction_results",
@@ -63,9 +64,9 @@ const sourceRegister = [
     access: "public_html",
     frequency: "weekly",
     geography: "Capital city",
-    indicators: ["auction_volume", "auction_clearance_rate", "auction_withdrawn_rate"],
+    indicators: ["auction_withdrawn_rate"],
     sourceUrl: "https://www.domain.com.au/auction-results/",
-    notes: "Free public weekly capital-city auction table retained for withdrawn-rate observations; historical volume and clearance use SQM Research.",
+    notes: "Free public weekly capital-city table retained only for withdrawn-rate observations.",
   },
   {
     sourceId: "sqm_postcode_listings_rents",
@@ -132,7 +133,7 @@ const officialIndicators = [
     unit: "percent",
     higherIs: "bullish",
     frequency: "weekly",
-    notes: "Weekly capital-city clearance rate from Domain public auction results.",
+    notes: "Final weekly capital-city and Cotality-published weighted combined-capitals clearance rate.",
   },
   {
     code: "auction_volume",
@@ -142,7 +143,7 @@ const officialIndicators = [
     unit: "count",
     higherIs: "mixed",
     frequency: "weekly",
-    notes: "Weekly capital-city auctions scheduled from Domain public auction results.",
+    notes: "Final weekly capital-city and combined-capitals auction totals from Cotality.",
   },
   {
     code: "auction_withdrawn_rate",
@@ -637,51 +638,150 @@ async function fetchSqmSuburbHistory(geography) {
   return rows;
 }
 
-async function fetchSqmAuctionHistory(state, city) {
-  const sourceUrl = `https://sqmresearch.com.au/property/auction-results?state=${state}`;
-  const response = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-  if (!response.ok) throw new Error(`SQM auction history failed: ${response.status}`);
-  const html = await response.text();
-  const match = html.match(/const auction_history\s*=\s*(\[[^;]+\]);/);
-  if (!match) throw new Error(`SQM auction history not found for ${state}`);
-  const history = JSON.parse(match[1]);
-  const cutoff = twoYearCutoff(history, "enddate");
+const cotalityCityState = {
+  Sydney: "NSW",
+  Melbourne: "VIC",
+  Brisbane: "QLD",
+  Adelaide: "SA",
+  Perth: "WA",
+  Tasmania: "TAS",
+  Canberra: "ACT",
+  Darwin: "NT",
+  "Combined capitals": "AUS",
+};
+
+function parseReportDate(text) {
+  const match = text.match(/(?:statistics\s*\(Final\)[\s\S]{0,80}?w\/?e|Finalised clearance rates[\s\S]{0,80}?Week ending)\s+(\d{1,2})(?:\s*(?:st|nd|rd|th))?\s+([A-Za-z]+)\s+(20\d{2})/i);
+  if (!match) return null;
+  const date = new Date(`${match[2]} ${match[1]}, ${match[3]} 00:00:00 UTC`);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+}
+
+function reportRowsFromText(text) {
   const rows = [];
-  for (const item of history.filter((row) => row.enddate >= cutoff)) {
-    rows.push(
-      buildObservation({
-        state,
-        city,
-        indicatorCode: "auction_clearance_rate",
-        indicatorName: "Auction clearance rate",
-        category: "demand",
-        leadLag: "leading",
-        unit: "percent",
-        higherIs: "bullish",
-        sourceName: "SQM Research",
-        periodEnd: item.enddate,
-        value: Number(item.clearance) * 100,
-        frequency: "weekly",
-        sourceUrl,
-      }),
-      buildObservation({
-        state,
-        city,
-        indicatorCode: "auction_volume",
-        indicatorName: "Auction volume",
-        category: "activity",
-        leadLag: "leading",
-        unit: "count",
-        higherIs: "mixed",
-        sourceName: "SQM Research",
-        periodEnd: item.enddate,
-        value: Number(item.ttl),
-        frequency: "weekly",
-        sourceUrl,
-      }),
-    );
+  const pattern = /(Sydney|Melbourne|Brisbane|Adelaide|Perth|Tasmania|Canberra|Darwin|Combined capitals)\s+(\d+(?:\.\d+)?%|n\.?a\.?)\s+([\d,]+)/gi;
+  for (const match of text.matchAll(pattern)) {
+    rows.push({ city: match[1], rate: /^n/i.test(match[2]) ? null : Number.parseFloat(match[2]), volume: Number(match[3].replaceAll(",", "")) });
   }
-  return rows.filter((row) => Number.isFinite(row.value));
+  return rows;
+}
+
+function reportRowsFromSplitTable(items) {
+  const tableItems = items.filter((item) => item.transform[5] >= 170 && item.transform[5] <= 285 && item.str.trim());
+  const rows = [];
+  for (const city of Object.keys(cotalityCityState)) {
+    const labels = tableItems.filter((item) => item.str.trim() === city);
+    const rateLabel = labels.find((item) => item.transform[4] < 280);
+    const volumeLabel = labels.find((item) => item.transform[4] >= 280);
+    if (!rateLabel && !volumeLabel) continue;
+    const nearest = (label, minX, maxX, pattern) => tableItems
+      .filter((item) => item.transform[4] >= minX && item.transform[4] <= maxX && pattern.test(item.str.trim()))
+      .map((item) => ({ item, distance: Math.abs(item.transform[5] - label.transform[5]) }))
+      .filter(({ distance }) => distance <= 3)
+      .sort((a, b) => a.distance - b.distance)[0]?.item.str.trim();
+    const rateText = rateLabel ? nearest(rateLabel, 130, 250, /^(?:\d+(?:\.\d+)?%|n\.?a\.?)$/i) : null;
+    const volumeText = volumeLabel ? nearest(volumeLabel, 360, 500, /^[\d,]+$/) : null;
+    if (rateText || volumeText) rows.push({
+      city,
+      rate: !rateText || /^n/i.test(rateText) ? null : Number.parseFloat(rateText),
+      volume: volumeText ? Number(volumeText.replaceAll(",", "")) : null,
+    });
+  }
+  return rows;
+}
+
+async function parseCotalityReport(sourceUrl, bytes) {
+  const document = await getDocument({ data: new Uint8Array(bytes), disableWorker: true }).promise;
+  const pages = [];
+  for (let pageNumber = 1; pageNumber <= Math.min(document.numPages, 2); pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const items = content.items.filter((item) => "str" in item);
+    pages.push({ items, text: items.map((item) => item.str).join(" ").replace(/\s+/g, " ") });
+  }
+  const fullText = pages.map((page) => page.text).join(" ");
+  const periodEnd = parseReportDate(fullText);
+  if (!periodEnd) throw new Error("final-results date not found");
+  let parsed = reportRowsFromText(fullText);
+  if (!parsed.some((row) => row.city === "Combined capitals")) {
+    parsed = pages.flatMap((page) => reportRowsFromSplitTable(page.items));
+  }
+  if (!parsed.some((row) => row.city === "Combined capitals" && row.rate != null && row.volume != null)) {
+    throw new Error("weighted combined-capitals row not found");
+  }
+  return parsed.flatMap((item) => {
+    const state = cotalityCityState[item.city];
+    const city = item.city === "Combined capitals" ? "Combined capital cities" : item.city === "Tasmania" ? "Hobart" : item.city;
+    const common = { state, city, sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl };
+    return [
+      item.rate == null ? null : buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: item.rate }),
+      item.volume == null ? null : buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: item.volume }),
+    ].filter(Boolean);
+  });
+}
+
+function cotalityCandidateUrls() {
+  const verified2025 = [
+    "6 April", "13 April", "20 April", "27 April",
+    "4 May", "11 May", "18 May", "25 May",
+    "1 June", "8 June", "15 June", "22 June", "29 June",
+    "6 July", "13 July", "20 July", "27 July",
+    "3 August", "10 August", "17 August",
+    "28 September", "5 October", "12 October", "19 October", "26 October",
+    "2 November", "9 November", "16 November", "23 November", "30 November",
+  ].map((date) => `Auction Preview Week ending ${date} 2025.pdf`);
+  const verified2026 = ["14 June", "21 June", "28 June", "12 July"]
+    .map((date) => `Finalised clearance rates and auction market preview ${date} 2026.pdf`);
+  const names = [...verified2025, ...verified2026];
+  const start = new Date("2026-07-19T00:00:00Z");
+  const end = new Date();
+  end.setUTCDate(end.getUTCDate() + 7);
+  for (const date = new Date(start); date <= end; date.setUTCDate(date.getUTCDate() + 7)) {
+    const day = date.getUTCDate();
+    const month = date.toLocaleString("en-AU", { month: "long", timeZone: "UTC" });
+    const year = date.getUTCFullYear();
+    names.push(`Finalised clearance rates and auction market preview ${day} ${month} ${year}.pdf`);
+  }
+  return names.map((name) => `https://discover.cotality.com/hubfs/Article-Reports/${encodeURIComponent(name)}`);
+}
+
+async function fetchCotalityAuctionHistory() {
+  const rows = [];
+  const messages = [];
+  const wait = (milliseconds) => new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
+  const request = async (sourceUrl, method) => {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const response = await fetch(sourceUrl, { method, headers: { "User-Agent": "Mozilla/5.0 property-indicator-research" } });
+      if (response.status !== 429) return response;
+      await wait(1500 * (attempt + 1));
+    }
+    return fetch(sourceUrl, { method, headers: { "User-Agent": "Mozilla/5.0 property-indicator-research" } });
+  };
+  for (const sourceUrl of process.env.COTALITY_SKIP_REMOTE === "1" ? [] : cotalityCandidateUrls()) {
+    const response = await request(sourceUrl, "GET");
+    if (response.status === 404) continue;
+    if (!response.ok) {
+      messages.push(`${response.status}: ${sourceUrl}`);
+      continue;
+    }
+    try {
+      rows.push(...await parseCotalityReport(sourceUrl, await response.arrayBuffer()));
+    } catch (error) {
+      messages.push(`${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  for (const filePath of (process.env.COTALITY_REPORT_FILES ?? "").split(";").filter(Boolean)) {
+    try {
+      const bytes = await readFile(filePath);
+      const sourceUrl = process.env.COTALITY_LOCAL_SOURCE_URL || `file:${filePath}`;
+      rows.push(...await parseCotalityReport(sourceUrl, bytes));
+    } catch (error) {
+      messages.push(`${filePath}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  const deduped = new Map(rows.map((row) => [`${row.state}|${row.city}|${row.indicatorCode}|${row.periodEnd}`, row]));
+  for (const message of messages) console.warn(`Cotality report skipped: ${message}`);
+  return { rows: [...deduped.values()], messages };
 }
 
 function mergeByKey(existing, incoming) {
@@ -719,39 +819,24 @@ for (const geography of (payload.geographies ?? []).filter((item) => item.geogra
     console.warn(`SQM refresh skipped for ${message}`);
   }
 }
-const sqmAuctionRows = [];
-const sqmAuctionSuccessfulCities = new Set();
-const sqmAuctionMessages = [];
-const auctionCities = {
-  NSW: "Sydney",
-  VIC: "Melbourne",
-  QLD: "Brisbane",
-  SA: "Adelaide",
-  WA: "Perth",
-  TAS: "Hobart",
-  NT: "Darwin",
-  ACT: "Canberra",
-};
-for (const [state, city] of Object.entries(auctionCities)) {
-  try {
-    const rows = await fetchSqmAuctionHistory(state, city);
-    sqmAuctionRows.push(...rows);
-    sqmAuctionSuccessfulCities.add(`${state}|${city}`);
-    sqmAuctionMessages.push(`${city}: ${rows.length} rows`);
-  } catch (error) {
-    const message = `${city}: ${error instanceof Error ? error.message : String(error)}`;
-    sqmAuctionMessages.push(message);
-    console.warn(`SQM auction refresh skipped for ${message}`);
-  }
+let cotalityAuctionRows = [];
+let cotalityAuctionMessage = "Cotality auction refresh skipped";
+try {
+  const result = await fetchCotalityAuctionHistory();
+  cotalityAuctionRows = result.rows;
+  cotalityAuctionMessage = `Cotality auction history: ${result.rows.length} rows${result.messages.length ? `; ${result.messages.length} reports could not be parsed` : ""}`;
+} catch (error) {
+  cotalityAuctionMessage = `Cotality auction refresh failed; retained previous Cotality observations (${error instanceof Error ? error.message : String(error)})`;
+  console.warn(cotalityAuctionMessage);
 }
-const sqmAuctionCodes = new Set(["auction_clearance_rate", "auction_volume"]);
+const cotalityAuctionCodes = new Set(["auction_clearance_rate", "auction_volume"]);
 const officialRows = [
   ...(await fetchAbsBuildingApprovals()),
   ...(await fetchAbsLendingIndicators()),
   ...(await fetchRbaCredit()),
-  ...domainRows.filter((row) => !(sqmAuctionCodes.has(row.indicatorCode) && sqmAuctionSuccessfulCities.has(`${row.state}|${row.city}`))),
+  ...domainRows.filter((row) => !cotalityAuctionCodes.has(row.indicatorCode)),
   ...sqmRows,
-  ...sqmAuctionRows,
+  ...cotalityAuctionRows,
 ];
 
 const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
@@ -767,6 +852,9 @@ const geographies = payload.geographies ?? [];
 if (!geographies.some((geo) => geo.geographyType === "national" && geo.city === "Australia")) {
   geographies.unshift({ state: "AUS", city: "Australia", suburb: "", postcode: "", geographyType: "national" });
 }
+if (!geographies.some((geo) => geo.geographyType === "combined_capitals" && geo.city === "Combined capital cities")) {
+  geographies.unshift({ state: "AUS", city: "Combined capital cities", suburb: "", postcode: "", geographyType: "combined_capitals" });
+}
 
 const observations = mergeByKey(
   (payload.observations ?? []).map((row) => ({
@@ -777,9 +865,7 @@ const observations = mergeByKey(
     const replacedSuburbRow =
       sqmCodes.has(row.indicatorCode) &&
       (row.sourceName === "SQM Research" || (sqmSuccessfulSuburbs.has(`${row.state}|${row.suburb}`) && row.sourceName !== "SQM Research"));
-    const replacedAuctionRow =
-      sqmAuctionCodes.has(row.indicatorCode) &&
-      sqmAuctionSuccessfulCities.has(`${row.state}|${row.city}`);
+    const replacedAuctionRow = cotalityAuctionCodes.has(row.indicatorCode) && row.sourceName !== "Cotality";
     return !(replacedSuburbRow || replacedAuctionRow);
   }),
   officialRows,
@@ -803,7 +889,7 @@ await writeFile(
           finishedAt: new Date().toISOString(),
           status: "success",
           rowsInserted: officialRows.length,
-          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}. SQM auction history: ${sqmAuctionMessages.join("; ")}`,
+          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}. ${cotalityAuctionMessage}`,
         },
       ],
     },
