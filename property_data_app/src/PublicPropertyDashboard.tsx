@@ -272,6 +272,15 @@ export function PublicPropertyDashboard() {
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
 
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [filtersOpen]);
+
   async function loadFabricData(nextAccount: AccountInfo) {
     const rows = await executeDax<Observation>(nextAccount, observationsDax());
     setPayload((current) => ({
@@ -434,9 +443,15 @@ export function PublicPropertyDashboard() {
             <a href="#latest-signals">Latest readings</a>
             <a href="#sources">Sources</a>
           </nav>
-          <button type="button" onClick={() => setFiltersOpen(true)} className="header-action">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((current) => !current)}
+            className={`header-action ${filtersOpen ? "active" : ""}`}
+            aria-controls="property-filters"
+            aria-expanded={filtersOpen}
+          >
             <SlidersHorizontal />
-            Explore data
+            {filtersOpen ? "Close filters" : "Explore data"}
           </button>
         </div>
       </header>
@@ -467,9 +482,15 @@ export function PublicPropertyDashboard() {
                 </button>
               )
             ) : null}
-            <button type="button" onClick={() => setFiltersOpen(true)} className="secondary-action">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((current) => !current)}
+              className="secondary-action responsive-filter-action"
+              aria-controls="property-filters"
+              aria-expanded={filtersOpen}
+            >
               <SlidersHorizontal />
-              Filters
+              {filtersOpen ? "Close filters" : "Filters"}
             </button>
           </div>
         </div>
@@ -480,6 +501,7 @@ export function PublicPropertyDashboard() {
         </div>
       </section>
       <section className="layout" id="market-signals" aria-label="Property market dashboard">
+        {filtersOpen ? <button type="button" className="filters-backdrop" aria-label="Close filters" onClick={() => setFiltersOpen(false)} /> : null}
         <FilterPane
           open={filtersOpen}
           locations={visibleLocations}
@@ -818,7 +840,7 @@ function FilterPane({
   onIndicator: (value: string) => void;
 }) {
   return (
-    <aside className={`filters ${open ? "open" : ""}`}>
+    <aside id="property-filters" className={`filters ${open ? "open" : ""}`}>
       <div className="filters-header">
         <div>
           <div className="eyebrow">Explore</div>
