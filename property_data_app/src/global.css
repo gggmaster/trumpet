@@ -25,36 +25,36 @@ button { cursor: pointer; }
 .skip-link { position: fixed; z-index: 50; top: 10px; left: 10px; transform: translateY(-160%); border-radius: 999px; padding: 10px 16px; background: var(--ink); color: white; font-size: 13px; font-weight: 800; text-decoration: none; }
 .skip-link:focus { transform: translateY(0); }
 .site-header { position: sticky; z-index: 30; top: 0; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.94); backdrop-filter: blur(18px); }
-.site-header-inner { min-height: 72px; display: grid; grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr); align-items: center; gap: 28px; width: min(1440px, 100%); margin: 0 auto; padding: 10px 36px; }
+.site-header-inner { min-height: 64px; display: grid; grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr); align-items: center; gap: 24px; width: min(1440px, 100%); margin: 0 auto; padding: 8px 36px; }
 .brand { display: inline-flex; align-items: center; gap: 11px; width: fit-content; color: var(--ink); text-decoration: none; }
 .brand-mark { position: relative; width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 14px; background: var(--ink); color: white; overflow: hidden; }
 .brand-mark svg { position: absolute; }
 .brand-building { width: 21px; height: 21px; transform: translate(-5px, -4px); }
 .brand-signal { width: 21px; height: 21px; transform: translate(7px, 8px); color: var(--accent); stroke-width: 2.7; }
-.brand-copy { display: grid; line-height: 1.05; }
+.brand-copy { display: grid; line-height: 1; white-space: nowrap; }
 .brand-copy strong { font-size: 15px; letter-spacing: -.01em; }
-.brand-copy small { margin-top: 4px; color: var(--muted); font-size: 11px; }
 .site-nav { display: flex; align-items: center; justify-content: center; gap: 28px; }
 .site-nav a, .site-footer a { color: var(--muted); font-size: 13px; font-weight: 700; text-decoration: none; transition: color .16s ease; }
 .site-nav a:hover, .site-footer a:hover { color: var(--ink); }
 .header-action { min-height: 42px; display: inline-flex; align-items: center; justify-self: end; gap: 8px; border: 0; border-radius: 999px; padding: 0 17px; background: var(--ink); color: white; font-weight: 750; }
 .header-action svg { color: var(--accent); }
-.hero { min-height: 320px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: end; gap: 42px; width: min(1440px, 100%); margin: 0 auto; padding: 58px 36px 34px; background: white; color: var(--ink); border-bottom: 1px solid var(--line); }
+.hero { min-height: 248px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: center; gap: 28px; width: min(1440px, 100%); margin: 0 auto; padding: 30px 36px 24px; background: white; color: var(--ink); border-bottom: 1px solid var(--line); }
 .hero-copy { max-width: 880px; }
-.eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .14em; margin-bottom: 10px; }
+.eyebrow { color: var(--accent); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .14em; margin-bottom: 8px; }
 h1, h2, p { margin: 0; }
-h1 { max-width: none; white-space: nowrap; font-size: clamp(32px, 4.5vw, 58px); line-height: 1; letter-spacing: -0.045em; }
-.hero p { max-width: 650px; margin-top: 18px; color: var(--muted); line-height: 1.55; font-size: 17px; }
-.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-.primary-action, .secondary-action { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 0 18px; font-weight: 750; }
+h1 { max-width: none; font-size: clamp(32px, 3.5vw, 46px); line-height: .96; letter-spacing: -0.04em; }
+h1 span { display: block; width: fit-content; white-space: nowrap; }
+.hero p { max-width: 820px; margin-top: 12px; color: var(--muted); line-height: 1.45; font-size: 15px; white-space: nowrap; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.primary-action, .secondary-action { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 0 16px; font-size: 14px; font-weight: 750; }
 .primary-action { border: 0; background: var(--accent); color: white; }
 .secondary-action { border: 1px solid #dddddd; background: white; color: var(--ink); }
 svg { width: 18px; height: 18px; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.hero-panel { min-height: 150px; border: 1px solid var(--line); border-radius: 24px; padding: 20px; background: white; box-shadow: var(--shadow); }
+.hero-panel { min-height: 122px; border: 1px solid var(--line); border-radius: 20px; padding: 17px 18px; background: white; box-shadow: var(--shadow); }
 .hero-panel span, .hero-panel small { display: block; color: var(--muted); font-size: 13px; }
-.hero-panel strong { display: block; margin: 10px 0; font-size: 22px; line-height: 1.2; }
+.hero-panel strong { display: block; margin: 7px 0; font-size: 19px; line-height: 1.2; white-space: nowrap; }
 .layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 24px; width: min(1440px, 100%); margin: 0 auto; padding: 24px 36px 56px; background: #fafafa; }
 .filters { position: sticky; top: 18px; align-self: start; max-height: calc(100vh - 36px); overflow: auto; border: 1px solid var(--line); border-radius: 24px; padding: 20px; background: white; color: var(--ink); box-shadow: 0 4px 18px rgba(0,0,0,.05); }
 .filters-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
@@ -169,13 +169,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 640px) {
   html { scroll-behavior: auto; }
   .site-header-inner { min-height: 64px; padding: 8px 18px; }
-  .brand-copy small { display: none; }
   .header-action { width: 42px; padding: 0; }
   .header-action span { display: none; }
   .header-action { font-size: 0; }
   .header-action svg { width: 18px; height: 18px; }
-  .hero { min-height: 0; gap: 24px; padding: 38px 18px 24px; }
-  h1 { font-size: clamp(18px, 6.3vw, 29px); letter-spacing: -.045em; }
+  .hero { min-height: 0; gap: 18px; padding: 26px 18px 20px; }
+  h1 { font-size: clamp(25px, 8vw, 36px); letter-spacing: -.04em; }
+  .hero p { white-space: normal; }
   .layout { padding: 14px 14px 34px; }
   .kpi-grid { grid-template-columns: 1fr; }
   .site-footer-inner { grid-template-columns: 1fr; gap: 24px; padding: 34px 18px; }

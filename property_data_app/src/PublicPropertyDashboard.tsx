@@ -427,7 +427,6 @@ export function PublicPropertyDashboard() {
             </span>
             <span className="brand-copy">
               <strong>Pivot Point</strong>
-              <small>Property intelligence</small>
             </span>
           </a>
           <nav className="site-nav" aria-label="Primary navigation">
@@ -445,7 +444,10 @@ export function PublicPropertyDashboard() {
       <section className="hero" aria-labelledby="page-title">
         <div className="hero-copy">
           <div className="eyebrow">Property signal tracker</div>
-          <h1 id="page-title">Investment Property Pivot Point</h1>
+          <h1 id="page-title">
+            <span>Investment Property</span>
+            <span>Pivot Point</span>
+          </h1>
           <p>
             See where the market may be moving next, with clean weekly and monthly signals for Australian suburbs and capital cities.
           </p>
