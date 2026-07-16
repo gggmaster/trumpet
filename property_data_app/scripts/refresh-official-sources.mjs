@@ -54,7 +54,7 @@ const sourceRegister = [
     geography: "Combined capital cities and individual capital cities",
     indicators: ["auction_volume", "auction_clearance_rate"],
     sourceUrl: "https://www.cotality.com/au/press-releases",
-    notes: "Final weekly Cotality auction results, including the published weighted combined-capitals rate and volume. Published same-week prior-year comparators are retained to support a two-year combined-capitals trend without mixing preliminary and final results.",
+    notes: "Weekly Cotality auction results. Final weighted combined-capitals results are preferred; official preliminary weekly results are retained as an explicitly flagged fallback where the public final archive is unavailable. Published same-week prior-year comparators support the two-year trend.",
   },
   {
     sourceId: "domain_auction_results",
@@ -252,6 +252,7 @@ function buildObservation({
   value,
   frequency,
   sourceUrl,
+  confidence = "normal",
 }) {
   return {
     suburb,
@@ -266,7 +267,7 @@ function buildObservation({
     sourceName,
     periodEnd,
     value,
-    confidence: "normal",
+    confidence,
     frequency,
     sourceUrl,
   };
@@ -760,6 +761,83 @@ function cotalityCandidateUrls() {
   return bases.flatMap((base) => names.map((name) => `${base}${encodeURIComponent(name)}`));
 }
 
+function cotalityPmiCandidateUrls(date) {
+  const day = date.getUTCDate();
+  const paddedDay = String(day).padStart(2, "0");
+  const month = date.toLocaleString("en-AU", { month: "long", timeZone: "UTC" });
+  const year = date.getUTCFullYear();
+  const stems = [
+    `Property Market Indicator Summary week ending ${year} ${month} ${day}.pdf`,
+    `Property Market Indicator Summary week ending ${year} ${month} ${paddedDay}.pdf`,
+    `Property Market Indicator Summary week ending ${year} ${month} ${paddedDay}_Final.pdf`,
+    `Property Market Indicator Summary week ending ${year} ${month} ${paddedDay} (1).pdf`,
+  ];
+  const articleBase = "https://discover.cotality.com/hubfs/Article-Reports/";
+  const emailBase = "https://discover.cotality.com/hubfs/Email-Files/";
+  const pulseBase = "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/";
+  const isoDate = date.toISOString().slice(0, 10);
+  const preferredBase = isoDate === "2026-02-01" || isoDate >= "2026-07-05" ? articleBase : isoDate <= "2026-03-01" ? emailBase : pulseBase;
+  const bases = [preferredBase, articleBase, emailBase, pulseBase].filter((base, index, all) => all.indexOf(base) === index);
+  return bases.flatMap((base) => stems.map((stem) => `${base}${encodeURIComponent(stem)}`));
+}
+
+async function parseCotalityPmiReport(sourceUrl, bytes, periodEnd) {
+  const document = await getDocument({ data: new Uint8Array(bytes), disableWorker: true }).promise;
+  const pages = [];
+  for (let pageNumber = 1; pageNumber <= Math.min(document.numPages, 2); pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const items = content.items.filter((item) => "str" in item);
+    pages.push({ items, text: items.map((item) => item.str).join(" ").replace(/\s+/g, " ") });
+  }
+  const fullText = pages.map((page) => page.text).join(" ");
+  let parsed = reportRowsFromText(fullText);
+  if (!parsed.some((row) => row.city === "Combined capitals")) {
+    parsed = pages.flatMap((page) => reportRowsFromSplitTable(page.items));
+  }
+  const combined = parsed.find((row) => row.city === "Combined capitals" || row.city === "Weighted Average");
+  if (!combined || combined.rate == null || combined.volume == null) throw new Error("preliminary combined-capitals row not found");
+  const common = { state: "AUS", city: "Combined capital cities", sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl, confidence: "preliminary" };
+  return [
+    buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: combined.rate }),
+    buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: combined.volume }),
+  ];
+}
+
+async function fetchCotalityPmiFallbackHistory() {
+  const rows = [];
+  const messages = [];
+  if (process.env.COTALITY_SKIP_PMI_REMOTE === "1") return { rows, messages };
+  const start = new Date("2026-02-01T00:00:00Z");
+  const end = new Date();
+  for (const date = new Date(start); date <= end; date.setUTCDate(date.getUTCDate() + 7)) {
+    const periodEnd = date.toISOString().slice(0, 10);
+    let found = false;
+    for (const sourceUrl of cotalityPmiCandidateUrls(date)) {
+      let response;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        response = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0 property-indicator-research" } });
+        if (response.status !== 429) break;
+        await new Promise((resolvePromise) => setTimeout(resolvePromise, 2000 * (attempt + 1)));
+      }
+      if (response.status === 404) continue;
+      if (!response.ok) {
+        messages.push(`${response.status}: ${sourceUrl}`);
+        continue;
+      }
+      try {
+        rows.push(...await parseCotalityPmiReport(sourceUrl, await response.arrayBuffer(), periodEnd));
+        found = true;
+        break;
+      } catch (error) {
+        messages.push(`${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    if (!found) messages.push(`${periodEnd}: no public Property Market Indicator report found`);
+  }
+  return { rows, messages };
+}
+
 async function fetchCotalityAuctionHistory() {
   const rows = [];
   const messages = [];
@@ -805,9 +883,11 @@ async function fetchCotalityFinalPressReleases() {
     if (!response.ok) throw new Error(`Cotality sitemap failed: ${response.status}`);
     return response.text();
   });
-  const sourceUrls = [...sitemap.matchAll(/<loc>(https:\/\/www\.cotality\.com\/au\/press-releases\/final-clearance-rates[^<]+)<\/loc>/gi)]
-    .map((match) => match[1]);
-  const rows = [];
+  const sourceUrls = [...sitemap.matchAll(/<loc>(https:\/\/www\.cotality\.com\/au\/press-releases\/[^<]+)<\/loc>/gi)]
+    .map((match) => match[1])
+    .filter((sourceUrl) => /auction|clearance|sydney-cools-to-covid-era-lows/i.test(sourceUrl));
+  const preliminaryRows = [];
+  const finalRows = [];
   const messages = [];
   for (const sourceUrl of sourceUrls) {
     try {
@@ -816,13 +896,33 @@ async function fetchCotalityFinalPressReleases() {
         return response.text();
       });
       const text = stripHtml(html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " "));
+      if (!/final-clearance-rates/i.test(sourceUrl)) {
+        const publishedMatch = text.match(/Published on:\s*([A-Za-z]+)\s+(\d{1,2}),\s+(2026)/i);
+        const combinedRatePattern = /(?:Across the\s+)?combined (?:capital cities|capitals)[, ]+(?:the\s+)?preliminary (?:auction\s+)?clearance rate[\s\S]{0,100}?(?:to|at|reaching)\s+(\d+(?:\.\d+)?)%/gi;
+        const rateMatch = [...text.matchAll(combinedRatePattern)].at(-1)
+          ?? (/sydney-cools-to-covid-era-lows/i.test(sourceUrl) ? text.match(/preliminary clearance rate[\s\S]{0,80}?to\s+(\d+(?:\.\d+)?)%/i) : null);
+        const rateIndex = rateMatch?.index ?? 0;
+        const leadText = text.slice(Math.max(0, rateIndex - 600), rateIndex + 1800);
+        const volumeMatch = leadText.match(/(?:based on\s+([\d,]+)\s+auction listings|(?:Only\s+)?([\d,]+)\s+(?:capital city\s+)?homes\s+(?:were\s+)?(?:taken|went|brought)\s+to auction|with\s+([\d,]+)\s+homes taken to auction)/i);
+        const volumeText = volumeMatch?.slice(1).find(Boolean);
+        if (!publishedMatch || !rateMatch || !volumeText) continue;
+        const publishedDate = new Date(`${publishedMatch[1]} ${publishedMatch[2]}, ${publishedMatch[3]} 00:00:00 UTC`);
+        publishedDate.setUTCDate(publishedDate.getUTCDate() - (publishedDate.getUTCDay() || 7));
+        const periodEnd = publishedDate.toISOString().slice(0, 10);
+        const common = { state: "AUS", city: "Combined capital cities", sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl, confidence: "preliminary" };
+        preliminaryRows.push(
+          buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: Number(rateMatch[1]) }),
+          buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: Number(volumeText.replaceAll(",", "")) }),
+        );
+        continue;
+      }
       const dateMatch = text.match(/Final clearance rates\s*[–-]\s*week ending\s+(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})/i);
       const volumeMatch = text.match(/(?:Across the capital cities,|Across the combined capitals,|There were|A total of)\s+([\d,]+)\s+(?:combined capital city )?(?:auctions|homes)/i);
       const rateMatch = text.match(/weighted (?:average )?(?:final )?clearance rate(?:\s+(?:finalised|came in|rose|eases))?(?:\s+(?:at|to|of))?\s+(\d+(?:\.\d+)?)%/i);
       if (!dateMatch || !volumeMatch || !rateMatch) throw new Error("combined-capitals final result not found");
       const periodEnd = new Date(`${dateMatch[2]} ${dateMatch[1]}, ${dateMatch[3]} 00:00:00 UTC`).toISOString().slice(0, 10);
       const common = { state: "AUS", city: "Combined capital cities", sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl };
-      rows.push(
+      finalRows.push(
         buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: Number(rateMatch[1]) }),
         buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: Number(volumeMatch[1].replaceAll(",", "")) }),
       );
@@ -830,7 +930,7 @@ async function fetchCotalityFinalPressReleases() {
       messages.push(`${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  return { rows, messages };
+  return { rows: [...preliminaryRows, ...finalRows], preliminaryRows, finalRows, messages };
 }
 
 function mergeByKey(existing, incoming) {
@@ -871,9 +971,9 @@ for (const geography of (payload.geographies ?? []).filter((item) => item.geogra
 let cotalityAuctionRows = [];
 let cotalityAuctionMessage = "Cotality auction refresh skipped";
 try {
-  const [pdfResult, pressResult] = await Promise.all([fetchCotalityAuctionHistory(), fetchCotalityFinalPressReleases()]);
-  cotalityAuctionRows = mergeByKey(pdfResult.rows, pressResult.rows);
-  const skipped = pdfResult.messages.length + pressResult.messages.length;
+  const [pmiResult, pdfResult, pressResult] = await Promise.all([fetchCotalityPmiFallbackHistory(), fetchCotalityAuctionHistory(), fetchCotalityFinalPressReleases()]);
+  cotalityAuctionRows = mergeByKey(mergeByKey(pressResult.preliminaryRows, pmiResult.rows), mergeByKey(pdfResult.rows, pressResult.finalRows));
+  const skipped = pmiResult.messages.length + pdfResult.messages.length + pressResult.messages.length;
   cotalityAuctionMessage = `Cotality auction history: ${cotalityAuctionRows.length} rows${skipped ? `; ${skipped} reports could not be parsed` : ""}`;
 } catch (error) {
   cotalityAuctionMessage = `Cotality auction refresh failed; retained previous Cotality observations (${error instanceof Error ? error.message : String(error)})`;
