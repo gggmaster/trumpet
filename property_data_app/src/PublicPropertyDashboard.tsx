@@ -416,13 +416,38 @@ export function PublicPropertyDashboard() {
   }
 
   return (
-    <main className="app">
-      <section className="hero">
+    <div className="app">
+      <a className="skip-link" href="#main-content">Skip to market signals</a>
+      <header className="site-header">
+        <div className="site-header-inner">
+          <a className="brand" href="#main-content" aria-label="Pivot Point home">
+            <span className="brand-mark" aria-hidden="true">
+              <Building2 className="brand-building" />
+              <Activity className="brand-signal" />
+            </span>
+            <span className="brand-copy">
+              <strong>Pivot Point</strong>
+              <small>Property intelligence</small>
+            </span>
+          </a>
+          <nav className="site-nav" aria-label="Primary navigation">
+            <a href="#market-signals">Market signals</a>
+            <a href="#latest-signals">Latest readings</a>
+            <a href="#sources">Sources</a>
+          </nav>
+          <button type="button" onClick={() => setFiltersOpen(true)} className="header-action">
+            <SlidersHorizontal />
+            Explore data
+          </button>
+        </div>
+      </header>
+      <main id="main-content">
+      <section className="hero" aria-labelledby="page-title">
         <div className="hero-copy">
           <div className="eyebrow">Property signal tracker</div>
-          <h1>Investment Property Pivot Point</h1>
+          <h1 id="page-title">Investment Property Pivot Point</h1>
           <p>
-            Clean weekly and monthly market signals for the suburbs and capital cities you care about.
+            See where the market may be moving next, with clean weekly and monthly signals for Australian suburbs and capital cities.
           </p>
           <div className="hero-actions">
             <button type="button" onClick={() => window.location.reload()} className="primary-action">
@@ -452,7 +477,7 @@ export function PublicPropertyDashboard() {
           <small>{payload ? `${payload.observations.length} market signals · ${payload.fetchRuns.filter((run) => run.status === "success").length} refreshes` : "Reading market signals"}</small>
         </div>
       </section>
-      <section className="layout">
+      <section className="layout" id="market-signals" aria-label="Property market dashboard">
         <FilterPane
           open={filtersOpen}
           locations={visibleLocations}
@@ -491,7 +516,7 @@ export function PublicPropertyDashboard() {
           </section>
 
           <section className="grid-two">
-            <section className="panel">
+            <section className="panel" id="latest-signals">
               <div className="panel-header">
                 <div>
                   <h2>Latest Suburb Signals</h2>
@@ -511,7 +536,7 @@ export function PublicPropertyDashboard() {
               <div className="empty-panel">Private investment property details are excluded from this public view.</div>
             </section>
           </section>
-          <section className="panel">
+          <section className="panel" id="sources">
             <div className="panel-header">
               <div>
                 <h2>Source Register</h2>
@@ -522,7 +547,28 @@ export function PublicPropertyDashboard() {
           </section>
         </div>
       </section>
-    </main>
+      </main>
+      <footer className="site-footer">
+        <div className="site-footer-inner">
+          <div className="footer-brand">
+            <span className="brand-mark brand-mark-footer" aria-hidden="true">
+              <Building2 className="brand-building" />
+              <Activity className="brand-signal" />
+            </span>
+            <div>
+              <strong>Pivot Point</strong>
+              <p>Property market signals for clearer investment research.</p>
+            </div>
+          </div>
+          <nav aria-label="Footer navigation">
+            <a href="#main-content">Back to top</a>
+            <a href="#market-signals">Explore signals</a>
+            <a href="#sources">Data sources</a>
+          </nav>
+          <small>Market indicators are informational only and are not financial advice.</small>
+        </div>
+      </footer>
+    </div>
   );
 }
 
