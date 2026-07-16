@@ -54,7 +54,7 @@ const sourceRegister = [
     geography: "Combined capital cities and individual capital cities",
     indicators: ["auction_volume", "auction_clearance_rate"],
     sourceUrl: "https://www.cotality.com/au/press-releases",
-    notes: "Final weekly Cotality auction results, including the published weighted combined-capitals rate. Public report history is partial and missing weeks remain blank.",
+    notes: "Final weekly Cotality auction results, including the published weighted combined-capitals rate and volume. Published same-week prior-year comparators are retained to support a two-year combined-capitals trend without mixing preliminary and final results.",
   },
   {
     sourceId: "domain_auction_results",
@@ -648,10 +648,11 @@ const cotalityCityState = {
   Canberra: "ACT",
   Darwin: "NT",
   "Combined capitals": "AUS",
+  "Weighted Average": "AUS",
 };
 
 function parseReportDate(text) {
-  const match = text.match(/(?:statistics\s*\(Final\)[\s\S]{0,80}?w\/?e|Finalised clearance rates[\s\S]{0,80}?Week ending)\s+(\d{1,2})(?:\s*(?:st|nd|rd|th))?\s+([A-Za-z]+)\s+(20\d{2})/i);
+  const match = text.match(/(?:statistics\s*\(Final\)[\s\S]{0,200}?w\/?e|Finalised clearance rates[\s\S]{0,120}?Week ending)\s+(\d{1,2})(?:\s*(?:st|nd|rd|th))?\s+([A-Za-z]+)\s+(20\d{2})/i);
   if (!match) return null;
   const date = new Date(`${match[2]} ${match[1]}, ${match[3]} 00:00:00 UTC`);
   return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
@@ -659,9 +660,9 @@ function parseReportDate(text) {
 
 function reportRowsFromText(text) {
   const rows = [];
-  const pattern = /(Sydney|Melbourne|Brisbane|Adelaide|Perth|Tasmania|Canberra|Darwin|Combined capitals)\s+(\d+(?:\.\d+)?%|n\.?a\.?)\s+([\d,]+)/gi;
+  const pattern = /(Sydney|Melbourne|Brisbane|Adelaide|Perth|Tasmania|Canberra|Darwin|Combined capitals|Weighted Average)\s+(\d+(?:\.\d+)?%|n\.?a\.?)\s+([\d,]+)/gi;
   for (const match of text.matchAll(pattern)) {
-    rows.push({ city: match[1], rate: /^n/i.test(match[2]) ? null : Number.parseFloat(match[2]), volume: Number(match[3].replaceAll(",", "")) });
+    rows.push({ city: match[1] === "Weighted Average" ? "Combined capitals" : match[1], rate: /^n/i.test(match[2]) ? null : Number.parseFloat(match[2]), volume: Number(match[3].replaceAll(",", "")) });
   }
   return rows;
 }
@@ -709,40 +710,54 @@ async function parseCotalityReport(sourceUrl, bytes) {
   if (!parsed.some((row) => row.city === "Combined capitals" && row.rate != null && row.volume != null)) {
     throw new Error("weighted combined-capitals row not found");
   }
-  return parsed.flatMap((item) => {
+  const currentRows = parsed.flatMap((item) => {
     const state = cotalityCityState[item.city];
-    const city = item.city === "Combined capitals" ? "Combined capital cities" : item.city === "Tasmania" ? "Hobart" : item.city;
+    const city = item.city === "Combined capitals" || item.city === "Weighted Average" ? "Combined capital cities" : item.city === "Tasmania" ? "Hobart" : item.city;
     const common = { state, city, sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl };
     return [
       item.rate == null ? null : buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: item.rate }),
       item.volume == null ? null : buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: item.volume }),
     ].filter(Boolean);
   });
+  const combinedNarrative = fullText.match(/There were\s+([\d,]+)\s+homes taken to auction across the combined capitals last week[\s\S]{0,900}?(?:and|from|compared to)\s+(?:the\s+)?([\d,]+)\s+(?:(?:held\s+)?over the same week|this time) last year/i);
+  const priorRateMatch = fullText.match(/(?:Over the same week|This time) last year,\s+(?:a clearance rate of\s+)?(\d+(?:\.\d+)?)%\s+(?:of (?:capital city|combined capital(?: city)?) auctions were successful|was recorded across the combined capitals)/i);
+  if (!combinedNarrative && !priorRateMatch) return currentRows;
+
+  const priorDate = new Date(`${periodEnd}T00:00:00Z`);
+  priorDate.setUTCDate(priorDate.getUTCDate() - 364);
+  const priorPeriodEnd = priorDate.toISOString().slice(0, 10);
+  const common = {
+    state: "AUS",
+    city: "Combined capital cities",
+    sourceName: "Cotality",
+    periodEnd: priorPeriodEnd,
+    frequency: "weekly",
+    sourceUrl,
+  };
+  const priorRows = [
+    priorRateMatch ? buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: Number(priorRateMatch[1]) }) : null,
+    combinedNarrative ? buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: Number(combinedNarrative[2].replaceAll(",", "")) }) : null,
+  ].filter(Boolean);
+  return [...currentRows, ...priorRows];
 }
 
 function cotalityCandidateUrls() {
-  const verified2025 = [
-    "6 April", "13 April", "20 April", "27 April",
-    "4 May", "11 May", "18 May", "25 May",
-    "1 June", "8 June", "15 June", "22 June", "29 June",
-    "6 July", "13 July", "20 July", "27 July",
-    "3 August", "10 August", "17 August",
-    "28 September", "5 October", "12 October", "19 October", "26 October",
-    "2 November", "9 November", "16 November", "23 November", "30 November",
-  ].map((date) => `Auction Preview Week ending ${date} 2025.pdf`);
-  const verified2026 = ["14 June", "21 June", "28 June", "12 July"]
-    .map((date) => `Finalised clearance rates and auction market preview ${date} 2026.pdf`);
-  const names = [...verified2025, ...verified2026];
-  const start = new Date("2026-07-19T00:00:00Z");
+  const names = [];
+  const start = new Date("2025-04-06T00:00:00Z");
   const end = new Date();
   end.setUTCDate(end.getUTCDate() + 7);
   for (const date = new Date(start); date <= end; date.setUTCDate(date.getUTCDate() + 7)) {
     const day = date.getUTCDate();
     const month = date.toLocaleString("en-AU", { month: "long", timeZone: "UTC" });
     const year = date.getUTCFullYear();
+    names.push(`Auction Preview Week ending ${day} ${month} ${year}.pdf`);
     names.push(`Finalised clearance rates and auction market preview ${day} ${month} ${year}.pdf`);
   }
-  return names.map((name) => `https://discover.cotality.com/hubfs/Article-Reports/${encodeURIComponent(name)}`);
+  const bases = [
+    "https://discover.cotality.com/hubfs/Article-Reports/",
+    "https://pages.corelogic.com/hubfs/CoreLogic%20AU/Article%20Reports/",
+  ];
+  return bases.flatMap((base) => names.map((name) => `${base}${encodeURIComponent(name)}`));
 }
 
 async function fetchCotalityAuctionHistory() {
@@ -784,6 +799,40 @@ async function fetchCotalityAuctionHistory() {
   return { rows: [...deduped.values()], messages };
 }
 
+async function fetchCotalityFinalPressReleases() {
+  const sitemapUrl = "https://www.cotality.com/sitemap.xml";
+  const sitemap = await fetch(sitemapUrl).then((response) => {
+    if (!response.ok) throw new Error(`Cotality sitemap failed: ${response.status}`);
+    return response.text();
+  });
+  const sourceUrls = [...sitemap.matchAll(/<loc>(https:\/\/www\.cotality\.com\/au\/press-releases\/final-clearance-rates[^<]+)<\/loc>/gi)]
+    .map((match) => match[1]);
+  const rows = [];
+  const messages = [];
+  for (const sourceUrl of sourceUrls) {
+    try {
+      const html = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0 property-indicator-research" } }).then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.text();
+      });
+      const text = stripHtml(html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " "));
+      const dateMatch = text.match(/Final clearance rates\s*[–-]\s*week ending\s+(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})/i);
+      const volumeMatch = text.match(/(?:Across the capital cities,|Across the combined capitals,|There were|A total of)\s+([\d,]+)\s+(?:combined capital city )?(?:auctions|homes)/i);
+      const rateMatch = text.match(/weighted (?:average )?(?:final )?clearance rate(?:\s+(?:finalised|came in|rose|eases))?(?:\s+(?:at|to|of))?\s+(\d+(?:\.\d+)?)%/i);
+      if (!dateMatch || !volumeMatch || !rateMatch) throw new Error("combined-capitals final result not found");
+      const periodEnd = new Date(`${dateMatch[2]} ${dateMatch[1]}, ${dateMatch[3]} 00:00:00 UTC`).toISOString().slice(0, 10);
+      const common = { state: "AUS", city: "Combined capital cities", sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl };
+      rows.push(
+        buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: Number(rateMatch[1]) }),
+        buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: Number(volumeMatch[1].replaceAll(",", "")) }),
+      );
+    } catch (error) {
+      messages.push(`${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  return { rows, messages };
+}
+
 function mergeByKey(existing, incoming) {
   const map = new Map();
   for (const row of existing) {
@@ -822,9 +871,10 @@ for (const geography of (payload.geographies ?? []).filter((item) => item.geogra
 let cotalityAuctionRows = [];
 let cotalityAuctionMessage = "Cotality auction refresh skipped";
 try {
-  const result = await fetchCotalityAuctionHistory();
-  cotalityAuctionRows = result.rows;
-  cotalityAuctionMessage = `Cotality auction history: ${result.rows.length} rows${result.messages.length ? `; ${result.messages.length} reports could not be parsed` : ""}`;
+  const [pdfResult, pressResult] = await Promise.all([fetchCotalityAuctionHistory(), fetchCotalityFinalPressReleases()]);
+  cotalityAuctionRows = mergeByKey(pdfResult.rows, pressResult.rows);
+  const skipped = pdfResult.messages.length + pressResult.messages.length;
+  cotalityAuctionMessage = `Cotality auction history: ${cotalityAuctionRows.length} rows${skipped ? `; ${skipped} reports could not be parsed` : ""}`;
 } catch (error) {
   cotalityAuctionMessage = `Cotality auction refresh failed; retained previous Cotality observations (${error instanceof Error ? error.message : String(error)})`;
   console.warn(cotalityAuctionMessage);
