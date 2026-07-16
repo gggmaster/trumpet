@@ -795,13 +795,20 @@ async function parseCotalityPmiReport(sourceUrl, bytes, periodEnd) {
   if (!parsed.some((row) => row.city === "Combined capitals")) {
     parsed = pages.flatMap((page) => reportRowsFromSplitTable(page.items));
   }
-  const combined = parsed.find((row) => row.city === "Combined capitals" || row.city === "Weighted Average");
+  const unique = new Map();
+  for (const row of parsed) unique.set(row.city === "Weighted Average" ? "Combined capitals" : row.city, row);
+  const combined = unique.get("Combined capitals");
   if (!combined || combined.rate == null || combined.volume == null) throw new Error("preliminary combined-capitals row not found");
-  const common = { state: "AUS", city: "Combined capital cities", sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl, confidence: "preliminary" };
-  return [
-    buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: combined.rate }),
-    buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: combined.volume }),
-  ];
+  return [...unique.entries()].flatMap(([sourceCity, row]) => {
+    const state = cotalityCityState[sourceCity];
+    if (!state) return [];
+    const city = sourceCity === "Combined capitals" ? "Combined capital cities" : sourceCity === "Tasmania" ? "Hobart" : sourceCity;
+    const common = { state, city, sourceName: "Cotality", periodEnd, frequency: "weekly", sourceUrl, confidence: "preliminary" };
+    return [
+      row.rate == null ? null : buildObservation({ ...common, indicatorCode: "auction_clearance_rate", indicatorName: "Auction clearance rate", category: "demand", leadLag: "leading", unit: "percent", higherIs: "bullish", value: row.rate }),
+      row.volume == null ? null : buildObservation({ ...common, indicatorCode: "auction_volume", indicatorName: "Auction volume", category: "activity", leadLag: "leading", unit: "count", higherIs: "mixed", value: row.volume }),
+    ].filter(Boolean);
+  });
 }
 
 async function fetchCotalityPmiFallbackHistory() {
