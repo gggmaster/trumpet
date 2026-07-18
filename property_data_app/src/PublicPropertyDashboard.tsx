@@ -255,7 +255,8 @@ export function PublicPropertyDashboard() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [suburbSearch, setSuburbSearch] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("combined_capitals|AUS|Combined capital cities");
-  const [selectedLens, setSelectedLens] = useState("all");
+  const [selectedPropertyType, setSelectedPropertyType] = useState("all");
+  const [selectedMarketTheme, setSelectedMarketTheme] = useState("all");
   const [selectedIndicator, setSelectedIndicator] = useState("auction_clearance_rate");
   const [account, setAccount] = useState<AccountInfo | null>(null);
 
@@ -350,11 +351,17 @@ export function PublicPropertyDashboard() {
   const selectedFrequency = selectedIndicatorMeta?.frequency;
 
   const lensFilter = (row: Observation) => {
-    if (selectedLens === "house") return row.indicatorCode.includes("_house") || row.indicatorCode.includes("listings");
-    if (selectedLens === "unit") return row.indicatorCode.includes("_unit") || row.indicatorCode.includes("listings");
-    if (selectedLens === "rental") return row.indicatorCode.includes("rental") || row.category.includes("rental");
-    if (selectedLens === "supply") return row.indicatorCode.includes("listing") || row.indicatorCode.includes("offmarket");
-    return true;
+    const isPropertyTypeSpecific = row.indicatorCode.includes("_house") || row.indicatorCode.includes("_unit");
+    const matchesPropertyType =
+      selectedPropertyType === "all" ||
+      !isPropertyTypeSpecific ||
+      (selectedPropertyType === "house" ? row.indicatorCode.includes("_house") : row.indicatorCode.includes("_unit"));
+    const matchesMarketTheme =
+      selectedMarketTheme === "all" ||
+      (selectedMarketTheme === "rental"
+        ? row.indicatorCode.includes("rental") || row.category.includes("rental")
+        : row.indicatorCode.includes("listing") || row.indicatorCode.includes("offmarket"));
+    return matchesPropertyType && matchesMarketTheme;
   };
 
   const selectedLocalObservations = useMemo(
@@ -365,7 +372,7 @@ export function PublicPropertyDashboard() {
           row.indicatorCode === selectedIndicator &&
           lensFilter(row),
       ),
-    [observations, selectedLocation, selectedIndicator, selectedLens],
+    [observations, selectedLocation, selectedIndicator, selectedPropertyType, selectedMarketTheme],
   );
   const selectedBenchmarkObservations = useMemo(
     () =>
@@ -377,7 +384,7 @@ export function PublicPropertyDashboard() {
           rowMatchesAustraliaBenchmark(row, selectedIndicator) &&
           lensFilter(row),
       ),
-    [observations, selectedIndicator, selectedLens],
+    [observations, selectedIndicator, selectedPropertyType, selectedMarketTheme],
   );
   const usesAustraliaBenchmark = Boolean(selectedLocation && !selectedLocalObservations.length && selectedBenchmarkObservations.length);
   const selectedObservations = usesAustraliaBenchmark ? selectedBenchmarkObservations : selectedLocalObservations;
@@ -390,7 +397,7 @@ export function PublicPropertyDashboard() {
 
   const latestForTotals = useMemo(
     () => latest.filter((row) => rowMatchesLocation(row, selectedLocation) && lensFilter(row)),
-    [latest, selectedLocation, selectedLens],
+    [latest, selectedLocation, selectedPropertyType, selectedMarketTheme],
   );
 
   const availableIndicators = useMemo(() => {
@@ -401,7 +408,7 @@ export function PublicPropertyDashboard() {
       if (hasLocalData || hasBenchmarkData) available.add(indicator.code);
     }
     return available;
-  }, [payload?.indicators, observations, selectedLocation, selectedLens]);
+  }, [payload?.indicators, observations, selectedLocation, selectedPropertyType, selectedMarketTheme]);
 
   const indicatorsWithAvailability = useMemo(
     () => (payload?.indicators ?? []).map((indicator) => ({ ...indicator, hasData: availableIndicators.has(indicator.code) })),
@@ -497,13 +504,15 @@ export function PublicPropertyDashboard() {
           locations={visibleLocations}
           selectedLocation={selectedLocation}
           suburbSearch={suburbSearch}
-          selectedLens={selectedLens}
+          selectedPropertyType={selectedPropertyType}
+          selectedMarketTheme={selectedMarketTheme}
           selectedIndicator={selectedIndicator}
           indicators={indicatorsWithAvailability}
           onClose={() => setFiltersOpen(false)}
           onSearch={setSuburbSearch}
           onLocation={setSelectedLocation}
-          onLens={setSelectedLens}
+          onPropertyType={setSelectedPropertyType}
+          onMarketTheme={setSelectedMarketTheme}
           onIndicator={setSelectedIndicator}
         />
 
@@ -840,26 +849,30 @@ function FilterPane({
   locations,
   selectedLocation,
   suburbSearch,
-  selectedLens,
+  selectedPropertyType,
+  selectedMarketTheme,
   selectedIndicator,
   indicators,
   onClose,
   onSearch,
   onLocation,
-  onLens,
+  onPropertyType,
+  onMarketTheme,
   onIndicator,
 }: {
   open: boolean;
   locations: LocationOption[];
   selectedLocation: string;
   suburbSearch: string;
-  selectedLens: string;
+  selectedPropertyType: string;
+  selectedMarketTheme: string;
   selectedIndicator: string;
   indicators: Indicator[];
   onClose: () => void;
   onSearch: (value: string) => void;
   onLocation: (value: string) => void;
-  onLens: (value: string) => void;
+  onPropertyType: (value: string) => void;
+  onMarketTheme: (value: string) => void;
   onIndicator: (value: string) => void;
 }) {
   return (
@@ -948,11 +961,15 @@ function FilterPane({
           );
         })}
       </select>
-      <label>Lens</label>
-      <select value={selectedLens} onChange={(event) => onLens(event.target.value)}>
-        <option value="all">All lenses</option>
+      <label>Property type</label>
+      <select value={selectedPropertyType} onChange={(event) => onPropertyType(event.target.value)}>
+        <option value="all">All property types</option>
         <option value="house">House</option>
         <option value="unit">Unit / townhouse</option>
+      </select>
+      <label>Market theme</label>
+      <select value={selectedMarketTheme} onChange={(event) => onMarketTheme(event.target.value)}>
+        <option value="all">All market themes</option>
         <option value="rental">Rental pressure</option>
         <option value="supply">Supply pressure</option>
       </select>
