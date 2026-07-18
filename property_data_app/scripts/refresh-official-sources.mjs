@@ -76,9 +76,9 @@ const sourceRegister = [
     access: "public_html_personal_reference",
     frequency: "weekly_and_monthly",
     geography: "Tracked suburb postcode",
-    indicators: ["suburb_sale_listings", "suburb_rental_listings", "rental_rate_12m_change_house"],
+    indicators: ["suburb_sale_listings", "suburb_rental_listings", "rental_vacancy_rate", "rental_rate_12m_change_house"],
     sourceUrl: "https://sqmresearch.com.au/property",
-    notes: "Two-year postcode history from SQM public charts for personal reference: monthly sale listings, weekly rental listings, and weekly house asking-rent annual change.",
+    notes: "Two-year postcode history from SQM public charts for personal reference: monthly sale listings and vacancy rates, weekly rental listings, and weekly house asking-rent annual change.",
   },
   {
     sourceId: "domain_or_proptrack_listings",
@@ -114,6 +114,16 @@ const officialIndicators = [
     higherIs: "bearish",
     frequency: "weekly",
     notes: "Weekly postcode rental listing stock from SQM Research, summed across listing-age bands.",
+  },
+  {
+    code: "rental_vacancy_rate",
+    name: "Rental vacancy rate",
+    category: "rental",
+    leadLag: "leading",
+    unit: "percent",
+    higherIs: "bearish",
+    frequency: "monthly",
+    notes: "Monthly postcode rental vacancy rate from SQM Research.",
   },
   {
     code: "rental_rate_12m_change_house",
@@ -567,16 +577,20 @@ async function fetchSqmSuburbHistory(geography) {
   const base = "https://sqmresearch.com.au/property";
   const saleUrl = `${base}/total-property-listings?postcode=${geography.postcode}&t=1`;
   const rentalUrl = `${base}/total-rent-listings?postcode=${geography.postcode}&t=1`;
+  const vacancyUrl = `${base}/vacancy-rates?postcode=${geography.postcode}&t=1`;
   const rentsUrl = `${base}/weekly-rents?postcode=${geography.postcode}&t=1`;
-  const [saleData, rentalData, rentsData] = await Promise.all([
+  const [saleData, rentalData, vacancyData, rentsData] = await Promise.all([
     fetchSqmPage(saleUrl),
     fetchSqmPage(rentalUrl),
+    fetchSqmPage(vacancyUrl),
     fetchSqmPage(rentsUrl),
   ]);
 
   const saleRows = saleData.map((row) => ({ ...row, date: `${row.year}-${String(row.month).padStart(2, "0")}-01` }));
   const saleCutoff = twoYearCutoff(saleRows, "date");
   const rentalCutoff = twoYearCutoff(rentalData, "date");
+  const vacancyRows = vacancyData.map((row) => ({ ...row, date: `${row.year}-${String(row.month).padStart(2, "0")}-01` }));
+  const vacancyCutoff = twoYearCutoff(vacancyRows, "date");
   const rentCutoff = twoYearCutoff(rentsData, "date");
   const rentByDate = new Map(rentsData.map((row) => [row.date, Number(row.houses_all)]));
   const rows = [];
@@ -612,6 +626,25 @@ async function fetchSqmSuburbHistory(geography) {
       value: listingBandTotal(row),
       frequency: "weekly",
       sourceUrl: rentalUrl,
+    }));
+  }
+
+  for (const row of vacancyRows.filter((item) => item.date >= vacancyCutoff)) {
+    const vacancyRate = Math.round(Number(row.vr) * 10_000) / 100;
+    if (!Number.isFinite(vacancyRate)) continue;
+    rows.push(buildObservation({
+      ...geography,
+      indicatorCode: "rental_vacancy_rate",
+      indicatorName: "Rental vacancy rate",
+      category: "rental",
+      leadLag: "leading",
+      unit: "percent",
+      higherIs: "bearish",
+      sourceName: "SQM Research",
+      periodEnd: row.date,
+      value: vacancyRate,
+      frequency: "monthly",
+      sourceUrl: vacancyUrl,
     }));
   }
 
@@ -1018,7 +1051,7 @@ const observations = mergeByKey(
     ...row,
     frequency: row.frequency ?? (row.indicatorCode.startsWith("suburb_") ? "weekly" : "monthly"),
   })).filter((row) => {
-    const sqmCodes = new Set(["suburb_sale_listings", "suburb_rental_listings", "rental_rate_12m_change_house"]);
+    const sqmCodes = new Set(["suburb_sale_listings", "suburb_rental_listings", "rental_vacancy_rate", "rental_rate_12m_change_house"]);
     const replacedSuburbRow =
       sqmCodes.has(row.indicatorCode) &&
       (row.sourceName === "SQM Research" || (sqmSuccessfulSuburbs.has(`${row.state}|${row.suburb}`) && row.sourceName !== "SQM Research"));
