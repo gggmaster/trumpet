@@ -9,6 +9,7 @@
     "build": "tsc -b --noCheck && vite build",
     "preview": "vite preview",
     "build:public-data": "node scripts/build-public-data.mjs && node scripts/refresh-official-sources.mjs",
+    "build:capital-cities-public": "node scripts/sanitize-capital-cities-public.mjs",
     "refresh:official": "node scripts/refresh-official-sources.mjs"
   },
   "dependencies": {
