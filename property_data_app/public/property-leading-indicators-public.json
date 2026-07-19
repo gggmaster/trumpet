@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-18T11:29:52.275Z",
+  "generatedAt": "2026-07-19T20:52:18.004Z",
   "source": "public JSON with official source backfill",
   "observations": [
     {
@@ -55457,244 +55457,6 @@
       "sourceUrl": "https://pages.corelogic.com/hubfs/CoreLogic%20AU/Article%20Reports/Auction%20Preview%20Week%20ending%2013%20July%202025.pdf"
     },
     {
-      "suburb": "Hornsby",
-      "city": "Sydney",
-      "state": "NSW",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": 16.523286858498953,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=2077&t=1"
-    },
-    {
-      "suburb": "Wahroonga",
-      "city": "Sydney",
-      "state": "NSW",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": -9.508581346017863,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=2076&t=1"
-    },
-    {
-      "suburb": "Rhodes",
-      "city": "Sydney",
-      "state": "NSW",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": 1.5643976957447014,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=2138&t=1"
-    },
-    {
-      "suburb": "Wynnum West",
-      "city": "Brisbane",
-      "state": "QLD",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": 10.419173686321702,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=4178&t=1"
-    },
-    {
-      "suburb": "Coomera",
-      "city": "Gold Coast",
-      "state": "QLD",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": 9.164313448641014,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=4209&t=1"
-    },
-    {
-      "suburb": "Baldivis",
-      "city": "Perth",
-      "state": "WA",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": 12.223489561730961,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=6171&t=1"
-    },
-    {
-      "suburb": "Mickleham",
-      "city": "Melbourne",
-      "state": "VIC",
-      "indicatorCode": "rental_rate_12m_change_house",
-      "indicatorName": "House rental rate 12 month change",
-      "category": "rental",
-      "leadLag": "confirming",
-      "unit": "percent",
-      "higherIs": "bullish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-08",
-      "value": 12.512767066180297,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=3064&t=1"
-    },
-    {
-      "suburb": "Hornsby",
-      "city": "Sydney",
-      "state": "NSW",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 125,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=2077&t=1"
-    },
-    {
-      "suburb": "Wahroonga",
-      "city": "Sydney",
-      "state": "NSW",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 35,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=2076&t=1"
-    },
-    {
-      "suburb": "Rhodes",
-      "city": "Sydney",
-      "state": "NSW",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 180,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=2138&t=1"
-    },
-    {
-      "suburb": "Wynnum West",
-      "city": "Brisbane",
-      "state": "QLD",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 55,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=4178&t=1"
-    },
-    {
-      "suburb": "Coomera",
-      "city": "Gold Coast",
-      "state": "QLD",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 207,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=4209&t=1"
-    },
-    {
-      "suburb": "Baldivis",
-      "city": "Perth",
-      "state": "WA",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 94,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=6171&t=1"
-    },
-    {
-      "suburb": "Mickleham",
-      "city": "Melbourne",
-      "state": "VIC",
-      "indicatorCode": "suburb_rental_listings",
-      "indicatorName": "Current suburb rental listings",
-      "category": "rental",
-      "leadLag": "leading",
-      "unit": "count",
-      "higherIs": "bearish",
-      "sourceName": "SQM Research",
-      "periodEnd": "2024-07-09",
-      "value": 284,
-      "confidence": "normal",
-      "frequency": "weekly",
-      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=3064&t=1"
-    },
-    {
       "suburb": "",
       "city": "Combined capital cities",
       "state": "AUS",
@@ -91987,7 +91749,7 @@
       "value": 72.1,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/auctions-set-to-rebound-this-week-from-the-long-weekend-lull"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20March%208.pdf"
     },
     {
       "suburb": "",
@@ -92086,10 +91848,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-03-08",
-      "value": 1874,
+      "value": 1854,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/auctions-set-to-rebound-this-week-from-the-long-weekend-lull"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20March%208.pdf"
     },
     {
       "suburb": "",
@@ -94860,7 +94622,7 @@
       "value": 57.9,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/a-divided-picture-preliminary-clearance-rates-split-across-the-capitals-post-easter-new"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20April%2012.pdf"
     },
     {
       "suburb": "",
@@ -94979,7 +94741,7 @@
       "value": 1899,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/a-divided-picture-preliminary-clearance-rates-split-across-the-capitals-post-easter-new"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20April%2012.pdf"
     },
     {
       "suburb": "",
@@ -97563,7 +97325,7 @@
       "value": 57.5,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/sydney-cools-to-covid-era-lows-while-adelaide-gains-momentum"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20May%2017.pdf"
     },
     {
       "suburb": "",
@@ -97682,7 +97444,7 @@
       "value": 1939,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/sydney-cools-to-covid-era-lows-while-adelaide-gains-momentum"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20May%2017.pdf"
     },
     {
       "suburb": "",
@@ -98209,7 +97971,7 @@
       "value": 54.5,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/auction-market-cools-as-preliminary-clearance-rate-hits-six-year-low"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20May%2031.pdf"
     },
     {
       "suburb": "",
@@ -98311,7 +98073,7 @@
       "value": 2681,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/auction-market-cools-as-preliminary-clearance-rate-hits-six-year-low"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20May%2031.pdf"
     },
     {
       "suburb": "",
@@ -100319,7 +100081,7 @@
       "value": 47.4,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/combined-capitals-preliminary-clearance-rate-falls-to-47-4-lowest-since-april-2020"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20June%2021.pdf"
     },
     {
       "suburb": "",
@@ -100421,7 +100183,7 @@
       "value": 1869,
       "confidence": "preliminary",
       "frequency": "weekly",
-      "sourceUrl": "https://www.cotality.com/au/press-releases/combined-capitals-preliminary-clearance-rate-falls-to-47-4-lowest-since-april-2020"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Email-Files/Pulse-PMI/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20June%2021.pdf"
     },
     {
       "suburb": "",
@@ -101588,10 +101350,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 51.6,
-      "confidence": "preliminary",
+      "value": 46.4,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101605,10 +101367,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 54.5,
-      "confidence": "preliminary",
+      "value": 49.6,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101622,10 +101384,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 23.8,
-      "confidence": "preliminary",
+      "value": 23.5,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101639,10 +101401,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 45.7,
-      "confidence": "preliminary",
+      "value": 45.5,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101656,10 +101418,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 50,
-      "confidence": "preliminary",
+      "value": 52.4,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101690,10 +101452,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 563,
-      "confidence": "preliminary",
+      "value": 556,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101707,10 +101469,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 582,
-      "confidence": "preliminary",
+      "value": 583,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101724,10 +101486,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 120,
-      "confidence": "preliminary",
+      "value": 119,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101741,10 +101503,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 111,
-      "confidence": "preliminary",
+      "value": 112,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101758,10 +101520,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 9,
-      "confidence": "preliminary",
+      "value": 10,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101776,9 +101538,9 @@
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
       "value": 0,
-      "confidence": "preliminary",
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -101792,10 +101554,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-07-05",
-      "value": 62,
-      "confidence": "preliminary",
+      "value": 63,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2005%20(1).pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2012%20July%202026.pdf"
     },
     {
       "suburb": "",
@@ -102374,6 +102136,244 @@
       "confidence": "preliminary",
       "frequency": "weekly",
       "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20July%2012.pdf"
+    },
+    {
+      "suburb": "Hornsby",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": 3.4673092445752784,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=2077&t=1"
+    },
+    {
+      "suburb": "Wahroonga",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": 3.285942149013854,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=2076&t=1"
+    },
+    {
+      "suburb": "Rhodes",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": 21.445724534152056,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=2138&t=1"
+    },
+    {
+      "suburb": "Wynnum West",
+      "city": "Brisbane",
+      "state": "QLD",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": 3.436744081530141,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=4178&t=1"
+    },
+    {
+      "suburb": "Coomera",
+      "city": "Gold Coast",
+      "state": "QLD",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": 5.133831747084772,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=4209&t=1"
+    },
+    {
+      "suburb": "Baldivis",
+      "city": "Perth",
+      "state": "WA",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": 5.723728103520509,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=6171&t=1"
+    },
+    {
+      "suburb": "Mickleham",
+      "city": "Melbourne",
+      "state": "VIC",
+      "indicatorCode": "rental_rate_12m_change_house",
+      "indicatorName": "House rental rate 12 month change",
+      "category": "rental",
+      "leadLag": "confirming",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-15",
+      "value": -1.1489107729035997,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/weekly-rents?postcode=3064&t=1"
+    },
+    {
+      "suburb": "Hornsby",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 100,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=2077&t=1"
+    },
+    {
+      "suburb": "Wahroonga",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 46,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=2076&t=1"
+    },
+    {
+      "suburb": "Rhodes",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 153,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=2138&t=1"
+    },
+    {
+      "suburb": "Wynnum West",
+      "city": "Brisbane",
+      "state": "QLD",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 52,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=4178&t=1"
+    },
+    {
+      "suburb": "Coomera",
+      "city": "Gold Coast",
+      "state": "QLD",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 169,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=4209&t=1"
+    },
+    {
+      "suburb": "Baldivis",
+      "city": "Perth",
+      "state": "WA",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 92,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=6171&t=1"
+    },
+    {
+      "suburb": "Mickleham",
+      "city": "Melbourne",
+      "state": "VIC",
+      "indicatorCode": "suburb_rental_listings",
+      "indicatorName": "Current suburb rental listings",
+      "category": "rental",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "bearish",
+      "sourceName": "SQM Research",
+      "periodEnd": "2026-07-17",
+      "value": 547,
+      "confidence": "normal",
+      "frequency": "weekly",
+      "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=3064&t=1"
     },
     {
       "suburb": "",
@@ -103049,6 +103049,13 @@
       "status": "success",
       "rowsInserted": 5221,
       "message": "Refreshed A-class official ABS/RBA backfill. Domain auction results refreshed. SQM postcode history: Hornsby: 244 rows; Wahroonga: 244 rows; Rhodes: 244 rows; Wynnum West: 244 rows; Coomera: 244 rows; Baldivis: 244 rows; Mickleham: 244 rows. Cotality auction history: 20 rows"
+    },
+    {
+      "startedAt": "2026-07-19T20:52:18.004Z",
+      "finishedAt": "2026-07-19T20:52:18.004Z",
+      "status": "success",
+      "rowsInserted": 5984,
+      "message": "Refreshed A-class official ABS/RBA backfill. Domain auction refresh skipped; retained previous observations (Domain auction results failed: 403). SQM postcode history: Hornsby: 244 rows; Wahroonga: 244 rows; Rhodes: 244 rows; Wynnum West: 244 rows; Coomera: 244 rows; Baldivis: 244 rows; Mickleham: 244 rows. Cotality auction history: 788 rows; 18 reports could not be parsed"
     }
   ],
   "sourceRegister": [
