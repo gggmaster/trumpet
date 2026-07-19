@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - codex/public-capital-cities
   workflow_dispatch:
 
 permissions:
@@ -18,24 +19,38 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: property_data_app
     steps:
-      - name: Checkout
+      - name: Checkout full app
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: source-main
+
+      - name: Checkout capital-city public app
+        uses: actions/checkout@v4
+        with:
+          ref: codex/public-capital-cities
+          path: source-public
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: property_data_app/package.json
+          cache-dependency-path: |
+            source-main/property_data_app/package-lock.json
+            source-public/property_data_app/package-lock.json
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install full app dependencies
+        working-directory: source-main/property_data_app
+        run: npm ci
 
-      - name: Build app
+      - name: Install capital-city app dependencies
+        working-directory: source-public/property_data_app
+        run: npm ci
+
+      - name: Build full app
+        working-directory: source-main/property_data_app
         env:
           VITE_ENTRA_TENANT_ID: ${{ vars.VITE_ENTRA_TENANT_ID }}
           VITE_ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID }}
@@ -43,10 +58,25 @@ jobs:
           VITE_POWERBI_SEMANTIC_MODEL_ID: ${{ vars.VITE_POWERBI_SEMANTIC_MODEL_ID }}
         run: npm run build
 
+      - name: Build capital-city public app
+        working-directory: source-public/property_data_app
+        env:
+          VITE_ENTRA_TENANT_ID: ""
+          VITE_ENTRA_CLIENT_ID: ""
+          VITE_POWERBI_WORKSPACE_ID: ""
+          VITE_POWERBI_SEMANTIC_MODEL_ID: ""
+        run: npm run build
+
+      - name: Assemble Pages site
+        run: |
+          mkdir -p pages-site/capital-cities
+          cp -a source-main/property_data_app/dist/. pages-site/
+          cp -a source-public/property_data_app/dist/. pages-site/capital-cities/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: property_data_app/dist
+          path: pages-site
 
   deploy:
     if: ${{ vars.ENABLE_GITHUB_PAGES_DEPLOY == 'true' }}
