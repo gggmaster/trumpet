@@ -44,6 +44,7 @@ jobs:
           AZURE_CLIENT_SECRET: ${{ secrets.FABRIC_CLIENT_SECRET }}
           FABRIC_WAREHOUSE_SERVER: 5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com
           FABRIC_WAREHOUSE_DATABASE: PropertyIndicatorsWarehouse
+          FABRIC_WAREHOUSE_ID: 03a2aa43-0293-4584-a250-1fac3af41175
           POWERBI_WORKSPACE_ID: c72720ab-d6b2-414f-9ce5-bff9817f7946
           POWERBI_SEMANTIC_MODEL_ID: e572151a-5f0a-45e3-a43f-142cd3315202
         run: npm run sync:fabric

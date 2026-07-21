@@ -83,6 +83,19 @@ async function oauthToken(scope) {
   return (await response.json()).access_token;
 }
 
+async function warehouseServer() {
+  const workspace = required("POWERBI_WORKSPACE_ID");
+  const warehouse = required("FABRIC_WAREHOUSE_ID");
+  const token = await oauthToken("https://api.fabric.microsoft.com/.default");
+  const response = await fetch(`https://api.fabric.microsoft.com/v1/workspaces/${workspace}/warehouses/${warehouse}/connectionString`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(`Fabric Warehouse connection-string request failed (${response.status}): ${await response.text()}`);
+  const result = await response.json();
+  if (!result.connectionString) throw new Error("Fabric Warehouse connection-string response did not include connectionString");
+  return result.connectionString;
+}
+
 async function replaceWarehouse(payload) {
   let sql;
   try {
@@ -92,13 +105,13 @@ async function replaceWarehouse(payload) {
   } catch { throw new Error("The mssql package is required: npm install --save-dev mssql"); }
   const token = await oauthToken("https://database.windows.net/.default");
   const config = {
-    server: required("FABRIC_WAREHOUSE_SERVER"),
+    server: await warehouseServer(),
     database: required("FABRIC_WAREHOUSE_DATABASE"),
     port: 1433,
     connectionTimeout: 60_000,
     requestTimeout: 120_000,
     authentication: { type: "azure-active-directory-access-token", options: { token } },
-    options: { encrypt: true, trustServerCertificate: false, enableArithAbort: true },
+    options: { encrypt: "strict", trustServerCertificate: false, enableArithAbort: true },
   };
   let pool;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
