@@ -85,7 +85,11 @@ async function oauthToken(scope) {
 
 async function replaceWarehouse(payload) {
   let sql;
-  try { sql = await import("mssql"); } catch { throw new Error("The mssql package is required: npm install --save-dev mssql"); }
+  try {
+    const module = await import("mssql");
+    // mssql is CommonJS; Node's ESM bridge exposes its callable API on default.
+    sql = module.default || module["module.exports"] || module;
+  } catch { throw new Error("The mssql package is required: npm install --save-dev mssql"); }
   const token = await oauthToken("https://database.windows.net/.default");
   const pool = await sql.connect({ server: required("FABRIC_WAREHOUSE_SERVER"), database: required("FABRIC_WAREHOUSE_DATABASE"), authentication: { type: "azure-active-directory-access-token", options: { token } }, options: { encrypt: true } });
   const transaction = new sql.Transaction(pool);
