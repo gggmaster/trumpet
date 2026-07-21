@@ -48,6 +48,9 @@ jobs:
         working-directory: source-public/property_data_app
         run: npm ci
 
+      - name: Use governed capital-city snapshot
+        run: cp source-main/property_data_app/public/capital-cities/property-leading-indicators-public.json source-public/property_data_app/public/property-leading-indicators-public.json
+
       - name: Build full app
         working-directory: source-main/property_data_app
         env:

@@ -5,7 +5,10 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const projectRoot = resolve(root, "..");
 const csvDir = resolve(projectRoot, "powerbi_exports");
-const publicPath = resolve(root, "public", "property-leading-indicators-public.json");
+const publicPath = process.env.PROPERTY_DATA_OUTPUT
+  ? resolve(process.cwd(), process.env.PROPERTY_DATA_OUTPUT)
+  : resolve(root, "public", "property-leading-indicators-public.json");
+const canonicalPublicPath = resolve(root, "public", "property-leading-indicators-public.json");
 
 const files = {
   observations: "observations.csv",
@@ -73,8 +76,15 @@ async function pathExists(path) {
 }
 
 if (!(await pathExists(resolve(csvDir, files.observations)))) {
-  if (await pathExists(publicPath)) {
-    console.log(`CSV exports not found at ${csvDir}; keeping existing ${publicPath}`);
+  const fallbackPath = (await pathExists(publicPath)) ? publicPath : canonicalPublicPath;
+  if (await pathExists(fallbackPath)) {
+    if (fallbackPath !== publicPath) {
+      await mkdir(dirname(publicPath), { recursive: true });
+      await writeFile(publicPath, await readFile(fallbackPath, "utf8"));
+      console.log(`CSV exports not found at ${csvDir}; seeded ${publicPath} from ${fallbackPath}`);
+    } else {
+      console.log(`CSV exports not found at ${csvDir}; keeping existing ${publicPath}`);
+    }
     process.exit(0);
   }
   throw new Error(`CSV exports not found at ${csvDir} and no fallback JSON exists at ${publicPath}`);

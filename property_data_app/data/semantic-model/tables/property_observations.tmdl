@@ -1,0 +1,225 @@
+table property_observations
+	lineageTag: 57c2ab8b-0d53-4728-b12c-db5381912840
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 549f6cb6-13fe-4498-8f78-59d276086a0a
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column geography_id
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: geography_id
+
+	column indicator_id
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: indicator_id
+
+	column country
+		dataType: string
+		lineageTag: a4b7ea07-50c3-4ab6-a67e-38dbea92311b
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 23ecd25f-a484-4016-836d-779d8465ea38
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 7e918c5a-df60-4544-8e47-02ee085855d9
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column suburb
+		dataType: string
+		lineageTag: 82edd046-fc56-4dc7-b473-793194c4006b
+		summarizeBy: none
+		sourceColumn: suburb
+
+		annotation SummarizationSetBy = Automatic
+
+	column postcode
+		dataType: int64
+		formatString: 0
+		lineageTag: e954fe75-73dc-4b50-b4fe-fb9d18bcad38
+		summarizeBy: sum
+		sourceColumn: postcode
+
+		annotation SummarizationSetBy = Automatic
+
+	column geography_type
+		dataType: string
+		lineageTag: 70d3da65-1053-4346-9407-685d29fe0db7
+		summarizeBy: none
+		sourceColumn: geography_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column indicator_code
+		dataType: string
+		lineageTag: c0b8e43d-d20f-434c-ac3d-3fd894ebd356
+		summarizeBy: none
+		sourceColumn: indicator_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column indicator_name
+		dataType: string
+		lineageTag: f43b9fd6-0da6-437a-b107-fa3980d47d9a
+		summarizeBy: none
+		sourceColumn: indicator_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: 863d3f39-664e-4108-a219-f2554c210e9f
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column lead_lag
+		dataType: string
+		lineageTag: 2cbb9760-cfac-41f9-b625-b42ae2e3d486
+		summarizeBy: none
+		sourceColumn: lead_lag
+
+		annotation SummarizationSetBy = Automatic
+
+	column unit
+		dataType: string
+		lineageTag: 993d6eca-9e09-4395-93c2-0891eacd0649
+		summarizeBy: none
+		sourceColumn: unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column higher_is
+		dataType: string
+		lineageTag: df1218f2-b823-4c07-8a51-729054070d7d
+		summarizeBy: none
+		sourceColumn: higher_is
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_name
+		dataType: string
+		lineageTag: c6a7cfaf-a8c9-489a-914f-189bee72181d
+		summarizeBy: none
+		sourceColumn: source_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column access_type
+		dataType: string
+		lineageTag: 9f35f8cc-b8d3-4041-b889-74256c54f2ea
+		summarizeBy: none
+		sourceColumn: access_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column period_start
+		dataType: string
+		lineageTag: 96c4bf8a-4ebe-4703-9e3a-54b68d683ca6
+		summarizeBy: none
+		sourceColumn: period_start
+
+		annotation SummarizationSetBy = Automatic
+
+	column period_end
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d520b3fa-552f-4138-a9ba-a0821a10563e
+		summarizeBy: none
+		sourceColumn: period_end
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column observed_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 5837c959-27d8-4b33-a617-ad0d960d1e31
+		summarizeBy: none
+		sourceColumn: observed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column value
+		dataType: double
+		lineageTag: c04d9051-6a29-4e77-9aba-838661b97482
+		summarizeBy: sum
+		sourceColumn: value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column raw_value
+		dataType: double
+		lineageTag: 49ab5bcb-81bb-44d3-bf2c-46c55c5e98d1
+		summarizeBy: sum
+		sourceColumn: raw_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column confidence
+		dataType: string
+		lineageTag: 1aa32018-910b-4157-969d-df86cb66a4bb
+		summarizeBy: none
+		sourceColumn: confidence
+
+		annotation SummarizationSetBy = Automatic
+
+	column frequency
+		dataType: string
+		summarizeBy: none
+		sourceColumn: frequency
+
+	column source_url
+		dataType: string
+		lineageTag: 43465fb5-6d8a-4b6c-ad96-864603f29551
+		summarizeBy: none
+		sourceColumn: source_url
+
+		annotation SummarizationSetBy = Automatic
+
+	column notes
+		dataType: string
+		lineageTag: 4a24b5e4-8a54-4409-82d9-372231b99556
+		summarizeBy: none
+		sourceColumn: notes
+
+		annotation SummarizationSetBy = Automatic
+
+	partition property_observations = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com", "PropertyIndicatorsWarehouse"),
+				    property_observations = Source{[Schema="dbo",Item="property_observations"]}[Data]
+				in
+				    property_observations
+
+	annotation PBI_ResultType = Table
+

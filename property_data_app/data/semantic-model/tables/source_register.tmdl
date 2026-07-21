@@ -1,0 +1,62 @@
+table source_register
+
+	column source_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: source_id
+
+	column source_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: source_name
+
+	column class
+		dataType: string
+		summarizeBy: none
+		sourceColumn: class
+
+	column status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: status
+
+	column access
+		dataType: string
+		summarizeBy: none
+		sourceColumn: access
+
+	column frequency
+		dataType: string
+		summarizeBy: none
+		sourceColumn: frequency
+
+	column geography
+		dataType: string
+		summarizeBy: none
+		sourceColumn: geography
+
+	column indicators_json
+		dataType: string
+		summarizeBy: none
+		sourceColumn: indicators_json
+
+	column source_url
+		dataType: string
+		summarizeBy: none
+		sourceColumn: source_url
+
+	column notes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: notes
+
+	partition source_register = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com", "PropertyIndicatorsWarehouse"),
+				    source_register = Source{[Schema="dbo",Item="source_register"]}[Data]
+				in
+				    source_register
+
+	annotation PBI_ResultType = Table

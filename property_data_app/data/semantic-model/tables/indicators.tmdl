@@ -1,0 +1,87 @@
+table indicators
+	lineageTag: f39e3b9d-000a-4ef8-9fce-11f1cca35682
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: b2fd19dc-0e6a-4797-b879-3e7621fb84d8
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column code
+		dataType: string
+		lineageTag: da36850f-d7cb-49ac-8813-231dd22f88b5
+		summarizeBy: none
+		sourceColumn: code
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 675cf0e3-cca6-4d73-9e65-228b0489185a
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: 3e9ad67f-5770-49f2-aedf-085b93549c4b
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column lead_lag
+		dataType: string
+		lineageTag: 23e88cc2-c60c-4c9b-9a9b-9ad361de3012
+		summarizeBy: none
+		sourceColumn: lead_lag
+
+		annotation SummarizationSetBy = Automatic
+
+	column default_frequency
+		dataType: string
+		lineageTag: 18ceff3a-3755-45d7-be5c-9e2994a95849
+		summarizeBy: none
+		sourceColumn: default_frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	column unit
+		dataType: string
+		lineageTag: 315b9f10-247a-417a-a3b1-52656b69be1a
+		summarizeBy: none
+		sourceColumn: unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column higher_is
+		dataType: string
+		lineageTag: 7ced989f-921b-46c3-9fa2-e708d5857c65
+		summarizeBy: none
+		sourceColumn: higher_is
+
+		annotation SummarizationSetBy = Automatic
+
+	column notes
+		dataType: string
+		lineageTag: 5018018e-eb4a-4c5a-bf4a-6a4adbd42239
+		summarizeBy: none
+		sourceColumn: notes
+
+		annotation SummarizationSetBy = Automatic
+
+	partition indicators = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com", "PropertyIndicatorsWarehouse"),
+				    indicators = Source{[Schema="dbo",Item="indicators"]}[Data]
+				in
+				    indicators
+
+	annotation PBI_ResultType = Table
+

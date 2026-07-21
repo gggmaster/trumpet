@@ -1,0 +1,81 @@
+table geographies
+	lineageTag: 78318961-ffe8-45ce-9826-75bd965ec5a8
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: f54bf5c9-5838-4cab-aea2-450d09cb9879
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: bfc6fe6b-674a-4c96-ae9f-967a86ee62ad
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: e342c34a-f9b9-4cfb-bb39-cb806f22ad27
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 6c35e80f-93ae-49db-b087-105fe32a2ec4
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column suburb
+		dataType: string
+		lineageTag: 96201fff-aa41-4c78-910d-b336d37688b4
+		summarizeBy: none
+		sourceColumn: suburb
+
+		annotation SummarizationSetBy = Automatic
+
+	column postcode
+		dataType: int64
+		formatString: 0
+		lineageTag: d6684a84-7547-4d53-aed1-ed53f0f662b7
+		summarizeBy: sum
+		sourceColumn: postcode
+
+		annotation SummarizationSetBy = Automatic
+
+	column geography_type
+		dataType: string
+		lineageTag: 625065e1-f359-4513-9639-bc3d65bc9c23
+		summarizeBy: none
+		sourceColumn: geography_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column active
+		dataType: int64
+		formatString: 0
+		lineageTag: b88acd16-291f-495b-878e-43d875ead1d6
+		summarizeBy: sum
+		sourceColumn: active
+
+		annotation SummarizationSetBy = Automatic
+
+	partition geographies = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com", "PropertyIndicatorsWarehouse"),
+				    geographies = Source{[Schema="dbo",Item="geographies"]}[Data]
+				in
+				    geographies
+
+	annotation PBI_ResultType = Table
+

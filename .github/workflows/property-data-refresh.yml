@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   refresh:
+    if: ${{ vars.FABRIC_SYNC_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,10 +22,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: property_data_app/package-lock.json
 
-      - name: Build public data payload with official backfill
+      - name: Install data refresh dependencies
         working-directory: property_data_app
-        run: npm install && npm run build:public-data
+        run: npm ci
+
+      - name: Build staged payload with official backfill
+        working-directory: property_data_app
+        env:
+          PROPERTY_DATA_OUTPUT: .sync/property-leading-indicators-staged.json
+        run: npm run build:public-data
+
+      - name: Synchronize Fabric model and governed snapshots
+        working-directory: property_data_app
+        env:
+          STAGED_PAYLOAD_PATH: .sync/property-leading-indicators-staged.json
+          AZURE_TENANT_ID: ${{ secrets.FABRIC_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.FABRIC_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.FABRIC_CLIENT_SECRET }}
+          FABRIC_WAREHOUSE_SERVER: 5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com
+          FABRIC_WAREHOUSE_DATABASE: PropertyIndicatorsWarehouse
+          POWERBI_WORKSPACE_ID: c72720ab-d6b2-414f-9ce5-bff9817f7946
+          POWERBI_SEMANTIC_MODEL_ID: e572151a-5f0a-45e3-a43f-142cd3315202
+        run: npm run sync:fabric
 
       - name: Commit refreshed data
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -33,3 +55,4 @@ jobs:
           commit_message: "Refresh property indicator data"
           file_pattern: |
             property_data_app/public/property-leading-indicators-public.json
+            property_data_app/public/capital-cities/property-leading-indicators-public.json

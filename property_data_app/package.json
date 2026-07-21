@@ -9,11 +9,13 @@
     "build": "tsc -b --noCheck && vite build",
     "preview": "vite preview",
     "build:public-data": "node scripts/build-public-data.mjs && node scripts/refresh-official-sources.mjs",
-    "refresh:official": "node scripts/refresh-official-sources.mjs"
+    "refresh:official": "node scripts/refresh-official-sources.mjs",
+    "sync:fabric": "node scripts/sync-fabric-and-snapshots.mjs"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.29.0",
     "lucide-react": "^1.17.0",
+    "mssql": "^11.0.1",
     "pdfjs-dist": "^5.4.624",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

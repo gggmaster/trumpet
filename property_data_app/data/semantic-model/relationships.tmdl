@@ -1,0 +1,12 @@
+relationship AutoDetected_89c69d19-e8c3-443b-82e7-5fc5feca0810
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: geographies.id
+	toColumn: property_observations.geography_id
+
+relationship AutoDetected_af40f99f-0802-4abb-b2ff-1ecf636b09ae
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: indicators.id
+	toColumn: property_observations.indicator_id
+

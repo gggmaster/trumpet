@@ -5,3 +5,6 @@ profiles:
       propertySales:
         workspaceId: 8028cb1f-74e7-4d7c-9bcf-682fe31fbc8b
         itemId: 191dc852-df10-4feb-a108-951849b53997
+      propertyLeadingIndicators:
+        workspaceId: c72720ab-d6b2-414f-9ce5-bff9817f7946
+        itemId: e572151a-5f0a-45e3-a43f-142cd3315202

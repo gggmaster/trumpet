@@ -1,0 +1,20 @@
+model Model
+	culture: en-AU
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["geographies","indicators","property_observations","fetch_runs","source_register"]
+
+ref table geographies
+ref table indicators
+ref table property_observations
+ref table fetch_runs
+ref table source_register
+
+ref cultureInfo en-AU
+

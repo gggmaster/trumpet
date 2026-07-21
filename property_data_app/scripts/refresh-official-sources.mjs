@@ -5,7 +5,9 @@ import * as XLSX from "xlsx";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const publicPath = resolve(root, "public", "property-leading-indicators-public.json");
+const publicPath = process.env.PROPERTY_DATA_OUTPUT
+  ? resolve(process.cwd(), process.env.PROPERTY_DATA_OUTPUT)
+  : resolve(root, "public", "property-leading-indicators-public.json");
 
 const sourceRegister = [
   {

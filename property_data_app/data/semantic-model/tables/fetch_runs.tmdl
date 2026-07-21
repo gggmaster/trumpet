@@ -1,0 +1,40 @@
+table fetch_runs
+
+	column started_at
+		dataType: dateTime
+		formatString: General Date
+		summarizeBy: none
+		sourceColumn: started_at
+
+	column finished_at
+		dataType: dateTime
+		formatString: General Date
+		summarizeBy: none
+		sourceColumn: finished_at
+
+	column status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: status
+
+	column rows_inserted
+		dataType: int64
+		formatString: 0
+		summarizeBy: sum
+		sourceColumn: rows_inserted
+
+	column message
+		dataType: string
+		summarizeBy: none
+		sourceColumn: message
+
+	partition fetch_runs = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("5uopyjs5gw4exotw5g6eyekd3m-vmqcpr5s2zhudhhfx74yc73ziy.datawarehouse.fabric.microsoft.com", "PropertyIndicatorsWarehouse"),
+				    fetch_runs = Source{[Schema="dbo",Item="fetch_runs"]}[Data]
+				in
+				    fetch_runs
+
+	annotation PBI_ResultType = Table
