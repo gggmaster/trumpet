@@ -91,7 +91,26 @@ async function replaceWarehouse(payload) {
     sql = module.default || module["module.exports"] || module;
   } catch { throw new Error("The mssql package is required: npm install --save-dev mssql"); }
   const token = await oauthToken("https://database.windows.net/.default");
-  const pool = await sql.connect({ server: required("FABRIC_WAREHOUSE_SERVER"), database: required("FABRIC_WAREHOUSE_DATABASE"), authentication: { type: "azure-active-directory-access-token", options: { token } }, options: { encrypt: true } });
+  const config = {
+    server: required("FABRIC_WAREHOUSE_SERVER"),
+    database: required("FABRIC_WAREHOUSE_DATABASE"),
+    port: 1433,
+    connectionTimeout: 60_000,
+    requestTimeout: 120_000,
+    authentication: { type: "azure-active-directory-access-token", options: { token } },
+    options: { encrypt: true, trustServerCertificate: false, enableArithAbort: true },
+  };
+  let pool;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      pool = await new sql.ConnectionPool(config).connect();
+      break;
+    } catch (error) {
+      if (attempt === 5) throw error;
+      console.warn(`Fabric Warehouse connection attempt ${attempt} failed; retrying in ${attempt * 5}s (${error.message})`);
+      await new Promise((resolvePromise) => setTimeout(resolvePromise, attempt * 5_000));
+    }
+  }
   const transaction = new sql.Transaction(pool);
   await transaction.begin(sql.ISOLATION_LEVEL.SERIALIZABLE);
   try {
