@@ -45,6 +45,18 @@ async function pollOperation(response) {
   }
 }
 
+async function operationResult(response) {
+  if (response.status !== 202) return response.json();
+  const operationId = response.headers.get("x-ms-operation-id");
+  if (!operationId) throw new Error("Fabric long-running operation did not return an operation ID");
+  await pollOperation(response);
+  const result = await fetch(`https://api.fabric.microsoft.com/v1/operations/${operationId}/result`, {
+    headers: fabricHeaders,
+  });
+  if (!result.ok) throw new Error(`Fabric operation result failed (${result.status}): ${await result.text()}`);
+  return result.json();
+}
+
 async function fabric(path, init = {}) {
   const response = await fetch(`https://api.fabric.microsoft.com/v1/${path}`, {
     ...init,
@@ -105,10 +117,7 @@ async function ensureNotebook() {
     const existingResponse = await fabric(`workspaces/${workspaceId}/notebooks/${item.id}/getDefinition?format=ipynb`, {
       method: "POST",
     });
-    if (existingResponse.status === 202) {
-      throw new Error("Notebook definition retrieval is asynchronous; retry the synchronization after the operation completes");
-    }
-    const existing = await existingResponse.json();
+    const existing = await operationResult(existingResponse);
     const platformPart = existing.definition?.parts?.find((part) => part.path === ".platform");
     if (!platformPart) throw new Error("Fabric notebook definition did not include its .platform metadata part");
     const definition = await notebookDefinition(platformPart);
