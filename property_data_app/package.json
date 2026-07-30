@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "build:public-data": "node scripts/build-public-data.mjs && node scripts/refresh-official-sources.mjs",
     "refresh:official": "node scripts/refresh-official-sources.mjs",
-    "sync:fabric": "node scripts/sync-fabric-and-snapshots.mjs"
+    "sync:fabric": "node scripts/sync-fabric-and-snapshots.mjs",
+    "sync:fabric-notebook": "node scripts/run-fabric-notebook-sync.mjs"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.29.0",

@@ -8,6 +8,9 @@ const stagedPath = resolve(process.env.PROPERTY_STAGED_PAYLOAD_PATH || required(
 const fullPath = resolve(process.env.PROPERTY_FULL_SNAPSHOT_PATH || resolve(appRoot, "public/property-leading-indicators-public.json"));
 const capitalPath = resolve(process.env.PROPERTY_CAPITAL_SNAPSHOT_PATH || resolve(appRoot, "public/capital-cities/property-leading-indicators-public.json"));
 const dryRun = process.argv.includes("--dry-run") || process.env.DRY_RUN === "1";
+const prepareOnly = process.argv.includes("--prepare-only");
+const finalizeOnly = process.argv.includes("--finalize-only");
+const preparedPath = resolve(process.env.PREPARED_PAYLOAD_PATH || resolve(appRoot, ".sync/property-leading-indicators-prepared.json"));
 const pageSize = Number(process.env.POWERBI_QUERY_PAGE_SIZE || 5000);
 
 const fieldMaps = {
@@ -205,7 +208,12 @@ async function writeJson(path, value) { await mkdir(dirname(path), { recursive: 
 const staged = prepareWarehousePayload(JSON.parse(await readFile(stagedPath, "utf8")));
 const expected = validatePayload(staged);
 if (dryRun) { console.log(JSON.stringify({ dryRun: true, stagedPath, expected }, null, 2)); process.exit(0); }
-await replaceWarehouse(staged);
+if (prepareOnly) {
+  await writeJson(preparedPath, staged);
+  console.log(JSON.stringify({ preparedPath, ...expected }, null, 2));
+  process.exit(0);
+}
+if (!finalizeOnly) await replaceWarehouse(staged);
 await refreshModel();
 const observations = await modelObservations(staged);
 const actual = validatePayload({ ...staged, observations });
