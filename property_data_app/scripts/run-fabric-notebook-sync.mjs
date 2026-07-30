@@ -74,22 +74,22 @@ async function ensureLakehouse() {
   return item;
 }
 
-function notebookDefinition() {
+function notebookDefinition(platformPart) {
   return readFile(notebookPath).then((content) => ({
     format: "ipynb",
     parts: [{
       path: "notebook-content.ipynb",
       payload: content.toString("base64"),
       payloadType: "InlineBase64",
-    }],
+    }, ...(platformPart ? [platformPart] : [])],
   }));
 }
 
 async function ensureNotebook() {
   const listed = await (await fabric(`workspaces/${workspaceId}/notebooks`)).json();
   let item = listed.value?.find((candidate) => candidate.displayName === notebookName);
-  const definition = await notebookDefinition();
   if (!item) {
+    const definition = await notebookDefinition();
     const created = await fabric(`workspaces/${workspaceId}/notebooks`, {
       method: "POST",
       body: JSON.stringify({ displayName: notebookName, description: "Loads the governed staged payload into PropertyIndicatorsWarehouse from inside Fabric.", definition }),
@@ -102,6 +102,16 @@ async function ensureNotebook() {
       item = refreshed.value?.find((candidate) => candidate.displayName === notebookName);
     }
   } else {
+    const existingResponse = await fabric(`workspaces/${workspaceId}/notebooks/${item.id}/getDefinition?format=ipynb`, {
+      method: "POST",
+    });
+    if (existingResponse.status === 202) {
+      throw new Error("Notebook definition retrieval is asynchronous; retry the synchronization after the operation completes");
+    }
+    const existing = await existingResponse.json();
+    const platformPart = existing.definition?.parts?.find((part) => part.path === ".platform");
+    if (!platformPart) throw new Error("Fabric notebook definition did not include its .platform metadata part");
+    const definition = await notebookDefinition(platformPart);
     await pollOperation(await fabric(`workspaces/${workspaceId}/notebooks/${item.id}/updateDefinition?updateMetadata=true`, {
       method: "POST",
       body: JSON.stringify({ definition }),
