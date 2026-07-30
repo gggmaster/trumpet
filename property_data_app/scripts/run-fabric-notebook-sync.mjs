@@ -102,7 +102,7 @@ async function ensureNotebook() {
       item = refreshed.value?.find((candidate) => candidate.displayName === notebookName);
     }
   } else {
-    await pollOperation(await fabric(`workspaces/${workspaceId}/notebooks/${item.id}/updateDefinition`, {
+    await pollOperation(await fabric(`workspaces/${workspaceId}/notebooks/${item.id}/updateDefinition?updateMetadata=true`, {
       method: "POST",
       body: JSON.stringify({ definition }),
     }));
@@ -143,9 +143,10 @@ async function runNotebook(notebookId, lakehouseId) {
     method: "POST",
     body: JSON.stringify({
       executionData: {
-        compute: "Spark",
+        compute: "Jupyter",
         computeConfiguration: {
           name: "property-indicator-refresh",
+          numCores: 2,
           defaultLakehouse: { referenceType: "ById", itemId: lakehouseId, workspaceId },
         },
       },
