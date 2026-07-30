@@ -143,10 +143,9 @@ async function runNotebook(notebookId, lakehouseId) {
     method: "POST",
     body: JSON.stringify({
       executionData: {
-        compute: "Jupyter",
+        compute: "Spark",
         computeConfiguration: {
           name: "property-indicator-refresh",
-          numCores: 2,
           defaultLakehouse: { referenceType: "ById", itemId: lakehouseId, workspaceId },
         },
       },
