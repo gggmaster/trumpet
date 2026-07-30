@@ -8,6 +8,11 @@ on:
         required: true
         default: false
         type: boolean
+      refresh_official_sources:
+        description: Re-fetch official sources before synchronization
+        required: true
+        default: true
+        type: boolean
   schedule:
     # Monday 07:00 Australia/Sydney is Sunday 20:00 UTC during AEST.
     # Adjust manually during daylight saving if exact local timing matters.
@@ -36,10 +41,18 @@ jobs:
         run: npm ci
 
       - name: Build staged payload with official backfill
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.refresh_official_sources }}
         working-directory: property_data_app
         env:
           PROPERTY_DATA_OUTPUT: .sync/property-leading-indicators-staged.json
         run: npm run build:public-data
+
+      - name: Seed staged payload from the governed snapshot
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.refresh_official_sources }}
+        working-directory: property_data_app
+        run: |
+          mkdir -p .sync
+          cp public/property-leading-indicators-public.json .sync/property-leading-indicators-staged.json
 
       - name: Prepare governed Warehouse payload
         working-directory: property_data_app
