@@ -3,9 +3,9 @@ name: Refresh property indicator data
 on:
   workflow_dispatch:
   schedule:
-    # Monday 07:00 Australia/Sydney is Sunday 20:00 UTC during AEST.
-    # Adjust manually during daylight saving if exact local timing matters.
-    - cron: "0 20 * * 0"
+    # Tuesday morning in Australia gives weekly sources time to publish
+    # their final Sunday observations before this refresh begins.
+    - cron: "0 21 * * 1"
 
 permissions:
   contents: write
