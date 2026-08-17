@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-12T13:20:40.846Z",
+  "generatedAt": "2026-08-17T21:26:00.331Z",
   "source": "public JSON with official source backfill",
   "observations": [
     {
@@ -43891,7 +43891,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2019-09-30",
-      "value": 108301,
+      "value": 108184,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -44469,7 +44469,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2019-12-31",
-      "value": 111837,
+      "value": 111928,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -45047,7 +45047,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2020-03-31",
-      "value": 109558,
+      "value": 109778,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -45625,7 +45625,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2020-06-30",
-      "value": 94915,
+      "value": 94718,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -46203,7 +46203,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2020-09-30",
-      "value": 119652,
+      "value": 119552,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -46781,7 +46781,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2020-12-31",
-      "value": 134789,
+      "value": 134790,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -47359,7 +47359,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2021-03-31",
-      "value": 156507,
+      "value": 157321,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -47937,7 +47937,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2021-06-30",
-      "value": 158671,
+      "value": 157981,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -48515,7 +48515,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2021-09-30",
-      "value": 158162,
+      "value": 158119,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -49093,7 +49093,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2021-12-31",
-      "value": 155572,
+      "value": 155445,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -49671,7 +49671,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2022-03-31",
-      "value": 153305,
+      "value": 154440,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -50249,7 +50249,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2022-06-30",
-      "value": 142698,
+      "value": 141785,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -50827,7 +50827,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2022-09-30",
-      "value": 129252,
+      "value": 129398,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -51405,7 +51405,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2022-12-31",
-      "value": 116189,
+      "value": 115891,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -51983,7 +51983,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2023-03-31",
-      "value": 110021,
+      "value": 111160,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -52561,7 +52561,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2023-06-30",
-      "value": 116594,
+      "value": 115670,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -53139,7 +53139,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2023-09-30",
-      "value": 115456,
+      "value": 115666,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -53717,7 +53717,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2023-12-31",
-      "value": 122279,
+      "value": 121827,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -54295,7 +54295,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2024-03-31",
-      "value": 120937,
+      "value": 122288,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -54941,7 +54941,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2024-06-30",
-      "value": 133859,
+      "value": 132796,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -58018,7 +58018,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2024-09-30",
-      "value": 134130,
+      "value": 134549,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -62251,7 +62251,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2024-12-31",
-      "value": 131392,
+      "value": 130649,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -66654,7 +66654,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2025-03-31",
-      "value": 128732,
+      "value": 130273,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -72791,7 +72791,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2025-06-30",
-      "value": 135055,
+      "value": 134077,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -80135,7 +80135,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2025-09-30",
-      "value": 141555,
+      "value": 141945,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -86323,7 +86323,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2025-12-31",
-      "value": 149066,
+      "value": 148075,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -92698,7 +92698,7 @@
       "higherIs": "bullish",
       "sourceName": "ABS Lending Indicators",
       "periodEnd": "2026-03-31",
-      "value": 139794,
+      "value": 141936,
       "confidence": "normal",
       "frequency": "quarterly",
       "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
@@ -100040,6 +100040,23 @@
       "sourceUrl": "https://www.rba.gov.au/statistics/tables/csv/d2-data.csv"
     },
     {
+      "suburb": "",
+      "city": "Australia",
+      "state": "AUS",
+      "indicatorCode": "housing_lending",
+      "indicatorName": "Housing lending commitments",
+      "category": "credit",
+      "leadLag": "confirming",
+      "unit": "count",
+      "higherIs": "bullish",
+      "sourceName": "ABS Lending Indicators",
+      "periodEnd": "2026-06-30",
+      "value": 134225,
+      "confidence": "normal",
+      "frequency": "quarterly",
+      "sourceUrl": "https://www.abs.gov.au/statistics/economy/finance/lending-indicators/latest-release"
+    },
+    {
       "suburb": "Hornsby",
       "city": "Sydney",
       "state": "NSW",
@@ -103204,9 +103221,9 @@
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
       "value": 46.8,
-      "confidence": "preliminary",
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103237,10 +103254,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 60.8,
-      "confidence": "preliminary",
+      "value": 56.8,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103254,10 +103271,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 38.1,
-      "confidence": "preliminary",
+      "value": 35.4,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103271,10 +103288,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 45.9,
-      "confidence": "preliminary",
+      "value": 46.8,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103288,10 +103305,10 @@
       "higherIs": "bullish",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 55.1,
-      "confidence": "preliminary",
+      "value": 51.4,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103306,9 +103323,9 @@
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
       "value": 94,
-      "confidence": "preliminary",
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103339,10 +103356,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 654,
-      "confidence": "preliminary",
+      "value": 659,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103356,10 +103373,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 163,
-      "confidence": "preliminary",
+      "value": 161,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103374,9 +103391,9 @@
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
       "value": 9,
-      "confidence": "preliminary",
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103391,9 +103408,9 @@
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
       "value": 0,
-      "confidence": "preliminary",
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103408,9 +103425,9 @@
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
       "value": 47,
-      "confidence": "preliminary",
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "",
@@ -103424,10 +103441,10 @@
       "higherIs": "mixed",
       "sourceName": "Cotality",
       "periodEnd": "2026-08-09",
-      "value": 1388,
-      "confidence": "preliminary",
+      "value": 1382,
+      "confidence": "normal",
       "frequency": "weekly",
-      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2009.pdf"
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Finalised%20clearance%20rates%20and%20auction%20market%20preview%2016%20August%202026.pdf"
     },
     {
       "suburb": "Hornsby",
@@ -103547,6 +103564,244 @@
       "confidence": "normal",
       "frequency": "weekly",
       "sourceUrl": "https://sqmresearch.com.au/property/total-rent-listings?postcode=3064&t=1"
+    },
+    {
+      "suburb": "",
+      "city": "Adelaide",
+      "state": "SA",
+      "indicatorCode": "auction_clearance_rate",
+      "indicatorName": "Auction clearance rate",
+      "category": "demand",
+      "leadLag": "leading",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 61.9,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "auction_clearance_rate",
+      "indicatorName": "Auction clearance rate",
+      "category": "demand",
+      "leadLag": "leading",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 55.6,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Melbourne",
+      "state": "VIC",
+      "indicatorCode": "auction_clearance_rate",
+      "indicatorName": "Auction clearance rate",
+      "category": "demand",
+      "leadLag": "leading",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 57.4,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Brisbane",
+      "state": "QLD",
+      "indicatorCode": "auction_clearance_rate",
+      "indicatorName": "Auction clearance rate",
+      "category": "demand",
+      "leadLag": "leading",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 51.9,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Canberra",
+      "state": "ACT",
+      "indicatorCode": "auction_clearance_rate",
+      "indicatorName": "Auction clearance rate",
+      "category": "demand",
+      "leadLag": "leading",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 60,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Combined capital cities",
+      "state": "AUS",
+      "indicatorCode": "auction_clearance_rate",
+      "indicatorName": "Auction clearance rate",
+      "category": "demand",
+      "leadLag": "leading",
+      "unit": "percent",
+      "higherIs": "bullish",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 56.5,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Adelaide",
+      "state": "SA",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 88,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Sydney",
+      "state": "NSW",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 425,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Melbourne",
+      "state": "VIC",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 596,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Brisbane",
+      "state": "QLD",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 145,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Perth",
+      "state": "WA",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 10,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Hobart",
+      "state": "TAS",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 0,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Canberra",
+      "state": "ACT",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 45,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
+    },
+    {
+      "suburb": "",
+      "city": "Combined capital cities",
+      "state": "AUS",
+      "indicatorCode": "auction_volume",
+      "indicatorName": "Auction volume",
+      "category": "activity",
+      "leadLag": "leading",
+      "unit": "count",
+      "higherIs": "mixed",
+      "sourceName": "Cotality",
+      "periodEnd": "2026-08-16",
+      "value": 1309,
+      "confidence": "preliminary",
+      "frequency": "weekly",
+      "sourceUrl": "https://discover.cotality.com/hubfs/Article-Reports/Property%20Market%20Indicator%20Summary%20week%20ending%202026%20August%2016.pdf"
     }
   ],
   "indicators": [
@@ -104172,6 +104427,13 @@
       "status": "success",
       "rowsInserted": 6047,
       "message": "Refreshed A-class official ABS/RBA backfill. Domain auction results refreshed. SQM postcode history: Hornsby: 244 rows; Wahroonga: 244 rows; Rhodes: 244 rows; Wynnum West: 244 rows; Coomera: 244 rows; Baldivis: 244 rows; Mickleham: 244 rows. Cotality auction history: 844 rows; 37 reports could not be parsed"
+    },
+    {
+      "startedAt": "2026-08-17T21:26:00.331Z",
+      "finishedAt": "2026-08-17T21:26:00.331Z",
+      "status": "success",
+      "rowsInserted": 6056,
+      "message": "Refreshed A-class official ABS/RBA backfill. Domain auction refresh skipped; retained previous observations (Domain auction results failed: 403). SQM postcode history: Hornsby: 244 rows; Wahroonga: 244 rows; Rhodes: 244 rows; Wynnum West: 244 rows; Coomera: 244 rows; Baldivis: 244 rows; Mickleham: 244 rows. Cotality auction history: 858 rows; 37 reports could not be parsed"
     }
   ],
   "sourceRegister": [
