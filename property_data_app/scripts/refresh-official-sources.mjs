@@ -57,6 +57,18 @@ const sourceRegister = [
     notes: "Weekly Cotality auction results. Final weighted combined-capitals results are preferred; official preliminary weekly results are retained as an explicitly flagged fallback where the public final archive is unavailable. Published same-week prior-year comparators support the two-year trend.",
   },
   {
+    sourceId: "cotality_home_value_index",
+    sourceName: "Cotality Home Value Index",
+    class: "A",
+    status: "enabled_public_reports",
+    access: "public_pdf_reports",
+    frequency: "monthly",
+    geography: "Combined capital cities and individual capital cities",
+    indicators: ["median_house_value", "median_unit_value"],
+    sourceUrl: "https://www.cotality.com/au/our-data/indices",
+    notes: "Monthly median estimated house and unit values from Cotality HVI reports. These are hedonic-model median values, not arithmetic average sale prices.",
+  },
+  {
     sourceId: "domain_auction_results",
     sourceName: "Domain Auction Results",
     class: "B",
@@ -164,6 +176,26 @@ const officialIndicators = [
     higherIs: "bearish",
     frequency: "weekly",
     notes: "Weekly capital-city withdrawn auctions divided by auctions reported from Domain public auction results.",
+  },
+  {
+    code: "median_house_value",
+    name: "Median house value",
+    category: "value",
+    leadLag: "confirming",
+    unit: "aud",
+    higherIs: "mixed",
+    frequency: "monthly",
+    notes: "Cotality monthly median estimated value for houses. This is a value level, not an arithmetic average sale price.",
+  },
+  {
+    code: "median_unit_value",
+    name: "Median unit value",
+    category: "value",
+    leadLag: "confirming",
+    unit: "aud",
+    higherIs: "mixed",
+    frequency: "monthly",
+    notes: "Cotality monthly median estimated value for units.",
   },
   {
     code: "housing_credit_owner_occupier",
@@ -465,6 +497,84 @@ async function fetchRbaCredit() {
     );
   }
   return rows.filter((row) => row.value != null);
+}
+
+const cotalityHviReports = [
+  "https://discover.cotality.com/hubfs/Article-Reports/COTALITY%20HVI%20APR%202026%20FINAL.pdf",
+  "https://discover.cotality.com/hubfs/Article-Reports/COTALITY%20HVI%20JUNE%202026%20FINAL.pdf",
+  "https://discover.cotality.com/hubfs/Article-Reports/COTALITY%20HVI%20JULY%202026%20FINAL.pdf",
+  "https://discover.cotality.com/hubfs/Article-Reports/COTALITY%20HVI%20OCT%202026%20FINAL.pdf",
+];
+
+const cotalityHviSnapshotPath = resolve(root, "data", "cotality-hvi-snapshot.json");
+
+const cotalityHviGeographies = [
+  { state: "NSW", city: "Sydney" },
+  { state: "VIC", city: "Melbourne" },
+  { state: "QLD", city: "Brisbane" },
+  { state: "SA", city: "Adelaide" },
+  { state: "WA", city: "Perth" },
+  { state: "TAS", city: "Hobart" },
+  { state: "NT", city: "Darwin" },
+  { state: "ACT", city: "Canberra" },
+];
+
+function cotalityReportDate(text) {
+  const match = text.match(/Index results as at\s+(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(20\d{2})/i);
+  if (!match) throw new Error("Cotality HVI report date not found");
+  const date = new Date(`${match[2]} ${match[1]}, ${match[3]} 00:00:00 UTC`);
+  if (Number.isNaN(date.getTime())) throw new Error("Cotality HVI report date is invalid");
+  return date.toISOString().slice(0, 10);
+}
+
+function cotalityMedianValues(text, section, nextSection) {
+  const start = text.indexOf(section);
+  const end = text.indexOf(nextSection, start + section.length);
+  if (start < 0 || end < 0) throw new Error(`Cotality HVI ${section} section not found`);
+  const block = text.slice(start, end);
+  const medianStart = block.lastIndexOf("Median value");
+  if (medianStart < 0) throw new Error(`Cotality HVI ${section} median row not found`);
+  return [...block.slice(medianStart).matchAll(/\$([\d,]+)/g)].map((match) => Number(match[1].replaceAll(",", "")));
+}
+
+async function parseCotalityHviReport(sourceUrl, bytes) {
+  const document = await getDocument({ data: new Uint8Array(bytes), disableWorker: true }).promise;
+  let reportText = "";
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const text = content.items.map((item) => ("str" in item ? item.str : "")).join(" ").replace(/\s+/g, " ");
+    reportText += ` ${text}`;
+  }
+  const periodEnd = cotalityReportDate(reportText);
+  const houseValues = cotalityMedianValues(reportText, "Houses", "Units");
+  const unitValues = cotalityMedianValues(reportText, "Units", "Media enquiries");
+  if (houseValues.length < 16 || unitValues.length < 16) throw new Error("Cotality HVI median rows are incomplete");
+  const geographyRows = [
+    ...cotalityHviGeographies.map((geography, index) => ({ ...geography, houseValue: houseValues[index], unitValue: unitValues[index] })),
+    { state: "AUS", city: "Combined capital cities", houseValue: houseValues[15], unitValue: unitValues[15] },
+  ];
+  return geographyRows.flatMap((geography) => [
+    buildObservation({ ...geography, indicatorCode: "median_house_value", indicatorName: "Median house value", category: "value", leadLag: "confirming", unit: "aud", higherIs: "mixed", sourceName: "Cotality Home Value Index", periodEnd, value: geography.houseValue, frequency: "monthly", sourceUrl }),
+    buildObservation({ ...geography, indicatorCode: "median_unit_value", indicatorName: "Median unit value", category: "value", leadLag: "confirming", unit: "aud", higherIs: "mixed", sourceName: "Cotality Home Value Index", periodEnd, value: geography.unitValue, frequency: "monthly", sourceUrl }),
+  ]);
+}
+
+async function fetchCotalityHomeValues() {
+  const snapshot = JSON.parse(await readFile(cotalityHviSnapshotPath, "utf8"));
+  const rows = snapshot.observations.map((row) => buildObservation(row));
+  const messages = [];
+  for (const sourceUrl of cotalityHviReports) {
+    try {
+      const response = await fetch(sourceUrl, { headers: { "User-Agent": "Mozilla/5.0 property-indicator-research" } });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      rows.push(...await parseCotalityHviReport(sourceUrl, await response.arrayBuffer()));
+    } catch (error) {
+      messages.push(`${sourceUrl}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  for (const message of messages) console.warn(`Cotality HVI report skipped: ${message}`);
+  return { rows, messages };
 }
 
 async function fetchDomainAuctionResults() {
@@ -1019,6 +1129,16 @@ try {
   cotalityAuctionMessage = `Cotality auction refresh failed; retained previous Cotality observations (${error instanceof Error ? error.message : String(error)})`;
   console.warn(cotalityAuctionMessage);
 }
+let cotalityHomeValueRows = [];
+let cotalityHomeValueMessage = "Cotality home-value refresh skipped";
+try {
+  const result = await fetchCotalityHomeValues();
+  cotalityHomeValueRows = result.rows;
+  cotalityHomeValueMessage = `Cotality median house/unit values: ${result.rows.length} rows${result.messages.length ? `; ${result.messages.length} reports could not be parsed` : ""}`;
+} catch (error) {
+  cotalityHomeValueMessage = `Cotality home-value refresh failed; retained previous observations (${error instanceof Error ? error.message : String(error)})`;
+  console.warn(cotalityHomeValueMessage);
+}
 const cotalityAuctionCodes = new Set(["auction_clearance_rate", "auction_volume"]);
 const officialRows = [
   ...(await fetchAbsBuildingApprovals()),
@@ -1027,6 +1147,7 @@ const officialRows = [
   ...domainRows.filter((row) => !cotalityAuctionCodes.has(row.indicatorCode)),
   ...sqmRows,
   ...cotalityAuctionRows,
+  ...cotalityHomeValueRows,
 ];
 
 const indicatorMap = new Map((payload.indicators ?? []).map((indicator) => [indicator.code, indicator]));
@@ -1079,7 +1200,7 @@ await writeFile(
           finishedAt: new Date().toISOString(),
           status: "success",
           rowsInserted: officialRows.length,
-          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}. ${cotalityAuctionMessage}`,
+          message: `Refreshed A-class official ABS/RBA backfill. ${domainRefreshMessage}. SQM postcode history: ${sqmMessages.join("; ")}. ${cotalityAuctionMessage}. ${cotalityHomeValueMessage}`,
         },
       ],
     },
